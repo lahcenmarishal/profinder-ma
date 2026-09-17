@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Espaces privés / techniques
+Disallow: /auth
+Disallow: /inscription
+Disallow: /compte
+Disallow: /admin
+Disallow: /messages
+Disallow: /demandes
+Disallow: /mon-besoin
+Disallow: /pro/
+Disallow: /api/
+Disallow: /avis/
+Disallow: /verifier-email
+Disallow: /verify-email
+
+# Les fichiers de rendu doivent rester crawlables
+Allow: /assets/
+Allow: /images/
+Allow: /*.js$
+Allow: /*.css$
+
+Sitemap: https://profinder.ma/sitemap.xml

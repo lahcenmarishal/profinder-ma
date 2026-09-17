@@ -1,0 +1,398 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  CalendarCheck,
+  ClipboardList,
+  MessageSquare,
+  Plus,
+  Search,
+  Send,
+  Sparkles,
+  X,
+} from "lucide-react";
+import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
+import { WorkspaceHero } from "@/components/workspace";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { AvailabilityPicker } from "@/components/availability-picker";
+import { fetchReferenceData, flexibleSlots, MODE_LABELS, type Slot } from "@/lib/marketplace";
+import { publishRequest } from "@/lib/request-draft";
+import { loadStudentNeed, type StudentNeed } from "@/lib/student-need";
+
+export const Route = createFileRoute("/_authenticated/compte")({
+  head: () => ({
+    meta: [
+      { title: "Mon espace élève — ProFinder" },
+      {
+        name: "description",
+        content:
+          "Tableau de bord élève : suivez vos demandes de cours, les propositions reçues et vos réservations.",
+      },
+      { property: "og:title", content: "Mon espace élève — ProFinder" },
+      {
+        property: "og:description",
+        content: "Vos demandes, propositions et réservations ProFinder en un coup d'œil.",
+      },
+    ],
+  }),
+  component: ClientSpace,
+});
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "Active",
+  proposals_received: "Propositions reçues",
+  booked: "Réservée",
+  completed: "Terminée",
+  cancelled: "Annulée",
+  expired: "Expirée",
+};
+
+function ClientSpace() {
+  const { user } = useAuth();
+  const ref = useQuery({ queryKey: ["reference"], queryFn: fetchReferenceData });
+  const [need, setNeed] = useState<StudentNeed | null>(null);
+
+  useEffect(() => {
+    setNeed(loadStudentNeed());
+  }, []);
+
+  const navigate = useNavigate();
+  const [showPublish, setShowPublish] = useState(false);
+  const [description, setDescription] = useState("");
+  const [slots, setSlots] = useState<Slot[]>(flexibleSlots());
+  const [publishing, setPublishing] = useState(false);
+  const [budgetMax, setBudgetMax] = useState("");
+  const [budgetOpen, setBudgetOpen] = useState(false);
+
+  const publishFromAccount = async () => {
+    if (!user || !need) return;
+    if (!need.city_id && need.mode !== "online") {
+      toast.error("Indiquez votre ville dans votre besoin avant de publier.");
+      return;
+    }
+    setPublishing(true);
+    try {
+      const id = await publishRequest(user.id, {
+        service_id: need.service_id,
+        level_id: need.level_id,
+        city_id: need.city_id,
+        mode: need.mode,
+        budget_min: null,
+        budget_max: budgetOpen || budgetMax.trim() === "" ? null : Number(budgetMax),
+        slots,
+        description,
+        area: need.area,
+        lat: need.lat,
+        lng: need.lng,
+      });
+      toast.success("🎉 Votre demande a été publiée !");
+      navigate({ to: "/demandes/$id", params: { id } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Publication impossible");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const publishSearch = need
+    ? {
+        service: need.service_id || undefined,
+        level: need.level_id || undefined,
+        city: need.city_id || undefined,
+        mode: need.mode,
+        address: need.area || undefined,
+        lat: need.lat ? String(need.lat) : undefined,
+        lng: need.lng ? String(need.lng) : undefined,
+      }
+    : {};
+
+  const requests = useQuery({
+    queryKey: ["my-requests", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("requests")
+        .select("*, proposals(id)")
+        .eq("client_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const bookings = useQuery({
+    queryKey: ["my-bookings", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bookings")
+        .select("id, status, scheduled_at")
+        .eq("client_id", user!.id);
+      return data ?? [];
+    },
+  });
+
+  const unread = useQuery({
+    queryKey: ["my-unread-messages", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_id", user!.id)
+        .is("read_at", null);
+      return count ?? 0;
+    },
+  });
+
+
+  const list = requests.data ?? [];
+  const proposalsCount = list.reduce(
+    (acc, r) => acc + ((r.proposals as { id: string }[] | null)?.length ?? 0),
+    0,
+  );
+  const activeCount = list.filter((r) => r.status === "active" || r.status === "proposals_received")
+    .length;
+
+  const displayName = user?.email?.split("@")[0] ?? "élève";
+
+  return (
+    <div className="min-h-screen bg-background font-sans text-foreground">
+      <SiteHeader variant="client" />
+      <main className="mx-auto max-w-5xl space-y-8 px-4 py-8 pb-28">
+        <WorkspaceHero
+          eyebrow="Espace élève"
+          title={`Bonjour ${displayName}`}
+          subtitle="Votre compte est prêt. Publiez une demande pour recevoir plusieurs propositions de professeurs vérifiés."
+          stats={[
+            { label: "Demandes actives", value: activeCount, Icon: ClipboardList },
+            { label: "Propositions reçues", value: proposalsCount, Icon: Send },
+            { label: "Réservations", value: bookings.data?.length ?? 0, Icon: CalendarCheck },
+            { label: "Messages non lus", value: unread.data ?? 0, Icon: MessageSquare },
+          ]}
+          actions={
+            <>
+              <Link
+                to="/publier"
+                search={publishSearch}
+                className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+              >
+                Publier une demande
+              </Link>
+              <Link
+                to="/professeurs"
+                className="flex items-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-muted"
+              >
+                <Search className="size-4" />
+                Trouver un professeur
+              </Link>
+            </>
+          }
+        />
+
+        {!showPublish ? (
+          <section className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-8 text-center">
+            <h2 className="mb-3 text-2xl font-extrabold tracking-tight md:text-3xl">
+              Publiez votre demande et recevez plusieurs propositions
+            </h2>
+            <p className="mx-auto mb-6 max-w-2xl text-muted-foreground">
+              Votre besoin est déjà enregistré. Ajoutez simplement vos disponibilités et une
+              courte description, puis publiez pour recevoir les propositions des professeurs.
+            </p>
+            {need ? (
+              <button
+                type="button"
+                onClick={() => setShowPublish(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground"
+              >
+                <Send className="size-4" />
+                Publier ma demande
+              </button>
+            ) : (
+              <Link
+                to="/publier"
+                search={publishSearch}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground"
+              >
+                <Send className="size-4" />
+                Publier ma demande
+              </Link>
+            )}
+          </section>
+        ) : (
+          <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold">Publier votre demande</h2>
+              <button
+                type="button"
+                onClick={() => setShowPublish(false)}
+                className="text-sm font-semibold text-muted-foreground hover:text-primary"
+              >
+                Annuler
+              </button>
+            </div>
+
+            {need && (
+              <div className="mb-5 rounded-2xl border border-border bg-muted/40 p-4 text-sm">
+                <p className="font-semibold">Récapitulatif de votre besoin</p>
+                <p className="text-muted-foreground">
+                  {ref.data?.services.find((s) => s.id === need.service_id)?.name ?? "Toutes matières"} ·{" "}
+                  {ref.data?.levels.find((l) => l.id === need.level_id)?.name ?? "—"} ·{" "}
+                  {ref.data?.cities.find((c) => c.id === need.city_id)?.name ?? "—"} ·{" "}
+                  {MODE_LABELS[need.mode]}
+                </p>
+              </div>
+            )}
+
+            <div className="mb-5">
+              <AvailabilityPicker value={slots} onChange={setSlots} />
+            </div>
+
+            <div className="mb-5 space-y-2">
+              <label
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                htmlFor="quick-budget"
+              >
+                Budget maximum souhaité (DH/h)
+              </label>
+              <input
+                id="quick-budget"
+                type="number"
+                min={0}
+                max={5000}
+                disabled={budgetOpen}
+                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+                value={budgetOpen ? "" : budgetMax}
+                placeholder={budgetOpen ? "À discuter" : undefined}
+                onChange={(e) => setBudgetMax(e.target.value)}
+              />
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="size-4 rounded border-border"
+                  checked={budgetOpen}
+                  onChange={(e) => setBudgetOpen(e.target.checked)}
+                />
+                Budget à discuter
+              </label>
+            </div>
+
+            <div className="mb-6 space-y-1">
+              <label
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                htmlFor="quick-description"
+              >
+                Description de votre besoin
+              </label>
+              <textarea
+                id="quick-description"
+                rows={4}
+                maxLength={1000}
+                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Décrivez votre besoin… Exemple : Je cherche un soutien régulier pour ma fille."
+              />
+            </div>
+
+            <button
+              type="button"
+              disabled={publishing}
+              onClick={publishFromAccount}
+              className="w-full rounded-xl bg-primary py-3 font-bold text-primary-foreground disabled:opacity-60"
+            >
+              {publishing ? "Publication…" : "Publier ma demande"}
+            </button>
+          </section>
+        )}
+
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold">Mes dernières demandes</h2>
+            <Link to="/demandes" className="text-sm font-semibold text-primary hover:underline">
+              Tout voir
+            </Link>
+          </div>
+
+          {requests.isLoading ? (
+            <p className="text-sm text-muted-foreground">Chargement…</p>
+          ) : list.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+              <Sparkles className="mx-auto mb-3 size-6 text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Vous n'avez pas encore publié de demande.
+              </p>
+              <Link
+                to="/publier"
+                search={publishSearch}
+                className="mt-4 inline-block rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+              >
+                Publier ma première demande
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {list.slice(0, 4).map((r) => (
+                <li
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 p-4"
+                >
+                  <div>
+                    <p className="font-semibold">
+                      {ref.data?.services.find((s) => s.id === r.service_id)?.name ??
+                        "Toutes matières"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {ref.data?.cities.find((c) => c.id === r.city_id)?.name ?? "—"} ·{" "}
+                      {MODE_LABELS[r.mode]} ·{" "}
+                      {(r.proposals as { id: string }[] | null)?.length ?? 0} proposition(s)
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">
+                      {STATUS_LABELS[r.status]}
+                    </span>
+                    <Link
+                      to="/demandes/$id"
+                      params={{ id: r.id }}
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                    >
+                      Ouvrir
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="grid gap-4 sm:grid-cols-2">
+          <Link
+            to="/messages"
+            className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
+          >
+            <MessageSquare className="mb-3 size-5 text-primary" />
+            <p className="font-bold">Messagerie</p>
+            <p className="text-sm text-muted-foreground">
+              Échangez avec les professeurs qui vous ont répondu.
+            </p>
+          </Link>
+          <Link
+            to="/demandes"
+            className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
+          >
+            <ClipboardList className="mb-3 size-5 text-primary" />
+            <p className="font-bold">Mes demandes</p>
+            <p className="text-sm text-muted-foreground">
+              Suivez le statut et comparez toutes les propositions.
+            </p>
+          </Link>
+        </section>
+      </main>
+      <MobileTabBar variant="client" />
+      <SiteFooter variant="client" />
+    </div>
+  );
+}
