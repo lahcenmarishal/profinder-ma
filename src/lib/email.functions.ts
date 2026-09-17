@@ -28,14 +28,7 @@ export const signUpWithEmail = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const { hasServiceRoleKey, performSignup, relayAuthEmail } = await import(
-      "@/lib/email/auth-email.server"
-    );
-    // Hébergeur sans clé privée (Netlify) : on relaie vers le déploiement Lovable
-    // qui détient les clés, pour que l'email ProFinder parte quand même.
-    if (!hasServiceRoleKey()) {
-      return relayAuthEmail("signup", data, { ok: false as const, reason: "link_failed" as const });
-    }
+    const { performSignup } = await import("@/lib/email/auth-email.server");
     return performSignup(data);
   });
 
@@ -45,10 +38,7 @@ export const resendVerificationEmail = createServerFn({ method: "POST" })
     z.object({ email: z.string().email().max(200), role: roleSchema, origin: originSchema }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { hasServiceRoleKey, performResend, relayAuthEmail } = await import(
-      "@/lib/email/auth-email.server"
-    );
-    if (!hasServiceRoleKey()) return relayAuthEmail("resend", data, { ok: true as const });
+    const { performResend } = await import("@/lib/email/auth-email.server");
     return performResend(data);
   });
 
@@ -58,10 +48,7 @@ export const sendPasswordResetEmail = createServerFn({ method: "POST" })
     z.object({ email: z.string().email().max(200), origin: originSchema }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { hasServiceRoleKey, performRecovery, relayAuthEmail } = await import(
-      "@/lib/email/auth-email.server"
-    );
-    if (!hasServiceRoleKey()) return relayAuthEmail("recovery", data, { ok: true as const });
+    const { performRecovery } = await import("@/lib/email/auth-email.server");
     return performRecovery(data);
   });
 
@@ -70,12 +57,6 @@ export const sendWelcomeEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ role: roleSchema }).parse(data))
   .handler(async ({ data, context }) => {
-    const { hasServiceRoleKey, performWelcome, relayAuthEmail } = await import(
-      "@/lib/email/auth-email.server"
-    );
-    const payload = { userId: context.userId, role: data.role };
-    if (!hasServiceRoleKey()) {
-      return relayAuthEmail("welcome", payload, { sent: false });
-    }
-    return performWelcome(payload);
+    const { performWelcome } = await import("@/lib/email/auth-email.server");
+    return performWelcome({ userId: context.userId, role: data.role });
   });
