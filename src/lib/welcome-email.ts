@@ -8,9 +8,15 @@ import { sendWelcomeEmail } from "@/lib/email.functions";
  * serveur pour qu'un seul email parte par compte.
  */
 export async function requestWelcomeEmail(role: "client" | "pro"): Promise<void> {
-  try {
-    await sendWelcomeEmail({ data: { role } });
-  } catch {
-    /* l'email de bienvenue reste secondaire */
+  // Une seconde tentative couvre le cas où la session vient juste d'être créée
+  // et où le jeton n'est pas encore attaché à la première requête.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await sendWelcomeEmail({ data: { role } });
+      return;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
   }
 }
+

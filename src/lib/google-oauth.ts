@@ -26,10 +26,11 @@ export async function signInWithGoogle(
   role?: AccountRole,
 ): Promise<GoogleOAuthResult> {
   const origin = window.location.origin;
-  // Le retour se fait toujours sur l'origine réellement utilisée : le domaine
-  // public profinder.ma en production (plus d'ancienne adresse publiée en relais),
-  // ou l'origine locale/preview quand on passe par le broker Lovable.
-  const returnOrigin = usesLovableOAuthBroker(window.location.hostname) ? origin : PUBLIC_SITE_URL;
+  // Le retour se fait toujours sur l'origine réellement utilisée, afin que la
+  // suite du parcours (création du compte, email de bienvenue) s'exécute sur la
+  // version du site où l'utilisateur se trouve, et non sur un autre déploiement.
+  const returnOrigin = origin || PUBLIC_SITE_URL;
+
   // Le rôle choisi est conservé en stockage local (voir rememberPendingRole).
   // L'URI de redirection Google doit être exacte et sans paramètres.
   // Le rôle voyage dans l'URL de retour (paramètre côté application, invisible
