@@ -21,11 +21,13 @@ function verifyRedirect(origin: string, role: "client" | "pro"): string {
   return `${origin.replace(/\/$/, "")}/verify-email?role=${role}`;
 }
 
-export function hasServiceRoleKey(): boolean {
-  return Boolean(process.env["SUPABASE_SERVICE_ROLE_KEY"]);
-}
+export { hasServiceRoleKey } from "@/lib/email/relay.server";
 
 export async function performSignup(data: SignupInput): Promise<SignupResult> {
+  const { relay } = await import("@/lib/email/relay.server");
+  const relayed = await relay<SignupResult>("signup", data);
+  if (relayed) return relayed;
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { sendEmail, siteUrl } = await import("@/lib/email/resend.server");
   const { verificationEmail } = await import("@/lib/email/templates.server");
@@ -70,6 +72,10 @@ export async function performResend(data: {
   role: "client" | "pro";
   origin: string;
 }): Promise<{ ok: true }> {
+  const { relay } = await import("@/lib/email/relay.server");
+  const relayed = await relay<{ ok: true }>("resend", data);
+  if (relayed) return relayed;
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { sendEmail, siteUrl } = await import("@/lib/email/resend.server");
   const { verificationEmail } = await import("@/lib/email/templates.server");
@@ -94,6 +100,10 @@ export async function performResend(data: {
 }
 
 export async function performRecovery(data: { email: string; origin: string }): Promise<{ ok: true }> {
+  const { relay } = await import("@/lib/email/relay.server");
+  const relayed = await relay<{ ok: true }>("recovery", data);
+  if (relayed) return relayed;
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { sendEmail, siteUrl } = await import("@/lib/email/resend.server");
   const { recoveryEmail } = await import("@/lib/email/templates.server");
@@ -117,6 +127,10 @@ export async function performWelcome(data: {
   accessToken?: string | undefined;
   role: "client" | "pro";
 }): Promise<{ sent: boolean }> {
+  const { relay } = await import("@/lib/email/relay.server");
+  const relayed = await relay<{ sent: boolean }>("welcome", data);
+  if (relayed) return relayed;
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { sendEmail, siteUrl } = await import("@/lib/email/resend.server");
   const { welcomeEmail } = await import("@/lib/email/templates.server");
