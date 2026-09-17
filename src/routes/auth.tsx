@@ -285,7 +285,19 @@ function AuthPage() {
           <p className="text-sm text-muted-foreground">
             Connexion en cours, ouverture de votre espace…
           </p>
+          <button
+            type="button"
+            onClick={() => {
+              consumeOAuthPending();
+              clearPendingRole();
+              setRedirecting(false);
+            }}
+            className="text-sm font-semibold text-primary underline underline-offset-2"
+          >
+            Ça prend trop de temps ? Revenir à la connexion
+          </button>
         </main>
+
       </div>
     );
   }
