@@ -55,18 +55,63 @@ function AuthPage() {
   // on affiche donc un écran de transition plutôt que le formulaire.
   const [redirecting, setRedirecting] = useState(false);
   useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    // Retour Google interrompu (fenêtre fermée, accès refusé) : on ne laisse
+    // jamais l'écran de transition tourner indéfiniment, on rend le formulaire.
+    const abortPendingOAuth = (message?: string) => {
+      consumeOAuthPending();
+      clearPendingRole();
+      if (cancelled) return;
+      setRedirecting(false);
+      if (message) toast.error(message);
+    };
+
+    const providerError = (() => {
+      try {
+        const params = new URLSearchParams(
+          window.location.search + "&" + window.location.hash.replace(/^#/, ""),
+        );
+        return params.get("error_description") ?? params.get("error");
+      } catch {
+        return null;
+      }
+    })();
+
+    if (providerError) {
+      abortPendingOAuth("Connexion Google annulée. Vous pouvez réessayer.");
+      return () => {
+        cancelled = true;
+      };
+    }
+
     if (oauthReturnInProgress()) {
       setRedirecting(true);
-      return;
+      // Filet de sécurité : sans session au bout de quelques secondes,
+      // l'inscription Google n'a pas abouti.
+      timer = setTimeout(() => {
+        void ensureSession().then((session) => {
+          if (cancelled) return;
+          if (!session?.user)
+            abortPendingOAuth("La connexion Google n'a pas abouti. Veuillez réessayer.");
+        });
+      }, 8000);
+      return () => {
+        cancelled = true;
+        if (timer) clearTimeout(timer);
+      };
     }
-    let cancelled = false;
+
     void ensureSession().then((session) => {
       if (!cancelled && session?.user) setRedirecting(true);
     });
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
   }, []);
+
   const [mode, setMode] = useState<"signin" | "signup">(search.mode);
   const role: Role = search.role;
   const isPro = role === "pro";
