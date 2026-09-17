@@ -156,26 +156,3 @@ export async function performWelcome(data: {
   return { sent: result.sent };
 }
 
-/** Déploiement Lovable qui détient les clés privées (relais pour les autres hébergeurs). */
-export function relayOrigin(): string {
-  return (process.env["AUTH_EMAIL_RELAY_ORIGIN"] ?? "https://profinder.ma").replace(/\/$/, "");
-}
-
-/** Relaie une demande d'email de compte vers le déploiement qui possède les clés. */
-export async function relayAuthEmail<T>(action: string, payload: unknown, fallback: T): Promise<T> {
-  try {
-    const response = await fetch(`${relayOrigin()}/api/public/auth-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, payload }),
-    });
-    if (!response.ok) {
-      console.error(`[email] relais indisponible [${response.status}]: ${await response.text()}`);
-      return fallback;
-    }
-    return (await response.json()) as T;
-  } catch (err) {
-    console.error("[email] relais injoignable:", err);
-    return fallback;
-  }
-}

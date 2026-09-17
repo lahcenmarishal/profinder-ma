@@ -146,7 +146,7 @@ function AuthPage() {
                 ? "Mot de passe trop faible ou trop courant. Choisissez-en un autre (8 caractères minimum, avec chiffres et majuscules)."
                 : result.reason === "send_failed"
                   ? "Compte créé, mais l'email de confirmation n'a pas pu être envoyé. Réessayez dans quelques minutes."
-                  : "Création du compte impossible : le service d'envoi d'emails n'est pas configuré sur cette version du site.",
+                  : (result.message ?? "Création du compte impossible. Veuillez réessayer."),
           );
           return;
         }
