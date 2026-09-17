@@ -206,7 +206,7 @@ function PublishPage() {
           result.reason === "already_registered"
             ? "Cette adresse email est déjà utilisée. Connectez-vous."
             : result.reason === "weak_password"
-              ? "Mot de passe trop faible ou trop courant. Choisissez-en un autre (8 caractères minimum, avec chiffres et majuscules)."
+              ? "Mot de passe invalide : 8 caractères minimum."
               : result.reason === "send_failed"
                 ? "Compte créé, mais l'email de confirmation n'a pas pu être envoyé. Réessayez dans quelques minutes."
                 : "Création du compte impossible : le service d'envoi d'emails n'est pas configuré sur cette version du site.",
@@ -395,6 +395,7 @@ function PublishPage() {
                   minLength={8}
                   required
                 />
+                <p className="text-xs text-muted-foreground">8 caractères minimum</p>
               </div>
               <div className="space-y-1">
                 <label className={labelCls} htmlFor="pub-confirm">

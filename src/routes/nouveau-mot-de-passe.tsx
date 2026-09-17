@@ -129,6 +129,7 @@ function NewPasswordPage() {
                   minLength={8}
                   required
                 />
+                <p className="text-xs text-muted-foreground">8 caractères minimum</p>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="pwd2">
