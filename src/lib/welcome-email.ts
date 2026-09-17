@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
  * déploiement Lovable qui les détient.
  */
 
-const RELAY_ORIGIN = "https://infinite-remix-magic.lovable.app";
+const RELAY_ORIGIN = "https://profinder.ma";
 
 export async function requestWelcomeEmail(role: "client" | "pro"): Promise<void> {
   try {

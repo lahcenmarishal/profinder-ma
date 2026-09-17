@@ -53,8 +53,9 @@ const bodySchema = z.discriminatedUnion("action", [
 const ALLOWED_ORIGINS = new Set([
   "https://profinder.ma",
   "https://www.profinder.ma",
-  "https://infinite-remix-magic.lovable.app",
-  "https://id-preview--d0eeafb1-47c9-4362-8b4f-b3bd058ebd78.lovable.app",
+  "https://project--f1f80ff5-5ea2-48c9-978f-5007e1f1069c.lovable.app",
+  "https://project--f1f80ff5-5ea2-48c9-978f-5007e1f1069c-dev.lovable.app",
+  "https://id-preview--f1f80ff5-5ea2-48c9-978f-5007e1f1069c.lovable.app",
 ]);
 
 function requestOrigin(request: Request): string | null {

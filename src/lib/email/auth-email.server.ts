@@ -158,7 +158,7 @@ export async function performWelcome(data: {
 
 /** Déploiement Lovable qui détient les clés privées (relais pour les autres hébergeurs). */
 export function relayOrigin(): string {
-  return (process.env["AUTH_EMAIL_RELAY_ORIGIN"] ?? "https://infinite-remix-magic.lovable.app").replace(/\/$/, "");
+  return (process.env["AUTH_EMAIL_RELAY_ORIGIN"] ?? "https://profinder.ma").replace(/\/$/, "");
 }
 
 /** Relaie une demande d'email de compte vers le déploiement qui possède les clés. */
