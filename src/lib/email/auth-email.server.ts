@@ -1,11 +1,6 @@
 /**
- * Logique d'envoi des emails de compte (vérification, renvoi, réinitialisation).
- *
- * Ce module est utilisé de deux façons :
- *  - directement, quand l'hébergeur fournit la clé privée du backend ;
- *  - via la route publique `/api/public/auth-email`, quand le site est servi
- *    par un autre hébergeur (Netlify) qui ne reçoit pas cette clé : la fonction
- *    serveur relaie alors la demande vers le déploiement Lovable officiel.
+ * Logique d'envoi des emails de compte (vérification, renvoi, réinitialisation,
+ * bienvenue). Exécutée sur le déploiement courant, qui dispose des clés privées.
  */
 
 export type SignupInput = {
@@ -156,26 +151,3 @@ export async function performWelcome(data: {
   return { sent: result.sent };
 }
 
-/** Déploiement Lovable qui détient les clés privées (relais pour les autres hébergeurs). */
-export function relayOrigin(): string {
-  return (process.env["AUTH_EMAIL_RELAY_ORIGIN"] ?? "https://profinder.ma").replace(/\/$/, "");
-}
-
-/** Relaie une demande d'email de compte vers le déploiement qui possède les clés. */
-export async function relayAuthEmail<T>(action: string, payload: unknown, fallback: T): Promise<T> {
-  try {
-    const response = await fetch(`${relayOrigin()}/api/public/auth-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, payload }),
-    });
-    if (!response.ok) {
-      console.error(`[email] relais indisponible [${response.status}]: ${await response.text()}`);
-      return fallback;
-    }
-    return (await response.json()) as T;
-  } catch (err) {
-    console.error("[email] relais injoignable:", err);
-    return fallback;
-  }
-}
