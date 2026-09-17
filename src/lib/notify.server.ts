@@ -7,6 +7,10 @@
  */
 
 export async function performNotifyNewRequest(requestId: string): Promise<{ notified: number }> {
+  const { relay } = await import("@/lib/email/relay.server");
+  const relayed = await relay<{ notified: number }>("notify_request", { requestId });
+  if (relayed) return relayed;
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const link = `/pro/demandes?r=${requestId}`;
@@ -95,6 +99,10 @@ export async function performNotifyProposal(data: {
   requestId: string;
   professionalId: string;
 }): Promise<{ notified: number }> {
+  const { relay } = await import("@/lib/email/relay.server");
+  const relayed = await relay<{ notified: number }>("notify_proposal", data);
+  if (relayed) return relayed;
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const [{ data: request }, { data: pro }] = await Promise.all([
