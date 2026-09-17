@@ -1,11 +1,6 @@
 /**
- * Logique d'envoi des emails de compte (vérification, renvoi, réinitialisation).
- *
- * Ce module est utilisé de deux façons :
- *  - directement, quand l'hébergeur fournit la clé privée du backend ;
- *  - via la route publique `/api/public/auth-email`, quand le site est servi
- *    par un autre hébergeur (Netlify) qui ne reçoit pas cette clé : la fonction
- *    serveur relaie alors la demande vers le déploiement Lovable officiel.
+ * Logique d'envoi des emails de compte (vérification, renvoi, réinitialisation,
+ * bienvenue). Exécutée sur le déploiement courant, qui dispose des clés privées.
  */
 
 export type SignupInput = {
