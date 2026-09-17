@@ -22,10 +22,6 @@ export const notifyProposal = createServerFn({ method: "POST" })
     z.object({ requestId: z.string().uuid(), professionalId: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { hasServiceRoleKey, relayAuthEmail } = await import("@/lib/email/auth-email.server");
-    if (!hasServiceRoleKey()) {
-      return relayAuthEmail("notify_proposal", data, { notified: 0 });
-    }
     const { performNotifyProposal } = await import("@/lib/notify.server");
     return performNotifyProposal(data);
   });
