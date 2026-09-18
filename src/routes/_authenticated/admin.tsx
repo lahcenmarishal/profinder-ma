@@ -7,6 +7,7 @@ import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
 import { WorkspaceHero } from "@/components/workspace";
 
 import { AdminVerifications } from "@/components/admin-verifications";
+import { AdminDemoCreate } from "@/components/admin-demo-create";
 import { AdminBlog } from "@/components/admin-blog";
 import { LaunchOfferAdminCounter } from "@/components/launch-offer";
 import { supabase } from "@/integrations/supabase/client";
@@ -220,6 +221,8 @@ function Admin() {
           ]}
         />
 
+
+        <AdminDemoCreate />
 
         <section className="mt-10">
           <h2 className="text-xl font-bold">Modération des profils</h2>
