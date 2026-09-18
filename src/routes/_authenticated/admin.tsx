@@ -8,6 +8,7 @@ import { WorkspaceHero } from "@/components/workspace";
 
 import { AdminVerifications } from "@/components/admin-verifications";
 import { AdminDemoCreate } from "@/components/admin-demo-create";
+import { AdminProEdit } from "@/components/admin-pro-edit";
 import { AdminBlog } from "@/components/admin-blog";
 import { LaunchOfferAdminCounter } from "@/components/launch-offer";
 import { supabase } from "@/integrations/supabase/client";
@@ -265,6 +266,12 @@ function Admin() {
                     Supprimer
                   </button>
                 </div>
+                <AdminProEdit
+                  id={p.id}
+                  photoUrl={p.photo_url}
+                  ratingAvg={p.rating_avg}
+                  ratingCount={p.rating_count}
+                />
               </div>
             ))}
             {(pros.data ?? []).length === 0 && (
