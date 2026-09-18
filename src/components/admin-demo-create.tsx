@@ -136,6 +136,10 @@ function DemoProForm({
       toast.error("Indiquez au moins un nom.");
       return;
     }
+    if (picked.length === 0) {
+      toast.error("Choisissez au moins une matière.");
+      return;
+    }
     setSaving(true);
     const chosenCity = (reference?.cities ?? []).find((c) => c.id === city);
     const { data, error } = await supabase
@@ -184,20 +188,29 @@ function DemoProForm({
         ].filter(Boolean),
       ),
     ) as string[];
-    if (levelIds.length > 0)
-      await supabase
+    const levelResult =
+      levelIds.length > 0
+        ? await supabase
         .from("professional_levels")
-        .insert(levelIds.map((level_id) => ({ professional_id: data.id, level_id })));
-    if (picked.length > 0)
-      await supabase
+        .insert(levelIds.map((level_id) => ({ professional_id: data.id, level_id })))
+        : { error: null };
+    const serviceResult = await supabase
         .from("professional_services")
         .insert(picked.map((service_id) => ({ professional_id: data.id, service_id })));
     // Disponibilité choisie (par défaut « Flexible »), sinon la fiche est écartée
     // des filtres horaires du site.
     const slots = availability.length > 0 ? availability : flexibleSlots();
-    await supabase
+    const availabilityResult = await supabase
       .from("professional_availability")
       .insert(slots.map((s) => ({ professional_id: data.id, ...s })));
+    const relationError =
+      levelResult.error ?? serviceResult.error ?? availabilityResult.error;
+    if (relationError) {
+      await supabase.from("professionals").delete().eq("id", data.id);
+      setSaving(false);
+      toast.error(`Création annulée : ${relationError.message}`);
+      return;
+    }
     setSaving(false);
     toast.success("Professeur de démonstration créé.");
     setName("");
