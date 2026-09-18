@@ -99,6 +99,7 @@ function AuthPage() {
         const { data, error } = await supabase.auth.getUser();
         if (cancelled) return;
         if (data.user && !error) {
+          if (timer) clearTimeout(timer);
           setRedirecting(true);
           return;
         }
