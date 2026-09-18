@@ -46,7 +46,7 @@ function Admin() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("professionals")
-        .select("*")
+        .select("*, professional_services(service_id), professional_availability(weekday,start_min,end_min)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -271,6 +271,8 @@ function Admin() {
                   photoUrl={p.photo_url}
                   ratingAvg={p.rating_avg}
                   ratingCount={p.rating_count}
+                  serviceIds={(p.professional_services ?? []).map((item) => item.service_id)}
+                  availability={p.professional_availability ?? []}
                 />
               </div>
             ))}
