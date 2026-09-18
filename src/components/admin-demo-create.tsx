@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { flexibleSlots } from "@/lib/marketplace";
 
 /**
@@ -84,7 +85,44 @@ function DemoProForm({
   const [headline, setHeadline] = useState("");
   const [bio, setBio] = useState("");
   const [photo, setPhoto] = useState("");
+  const [ratingAvg, setRatingAvg] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
+
+  // Photo envoyée depuis l'ordinateur : stockée dans le dossier de l'admin,
+  // puis référencée par un lien signé longue durée.
+  const uploadPhoto = async (file: File) => {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Photo trop lourde (max 5 Mo).");
+      return;
+    }
+    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+    if (!["jpg", "jpeg", "png", "webp"].includes(ext)) {
+      toast.error("Formats acceptés : JPG, PNG, WEBP.");
+      return;
+    }
+    setUploading(true);
+    const path = `${user.id}/demo-${Date.now()}.${ext}`;
+    const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (up.error) {
+      setUploading(false);
+      toast.error(up.error.message);
+      return;
+    }
+    const signed = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+    setUploading(false);
+    if (!signed.data?.signedUrl) {
+      toast.error("Lien de la photo indisponible.");
+      return;
+    }
+    setPhoto(signed.data.signedUrl);
+    toast.success("Photo ajoutée.");
+  };
 
   const services = useMemo(
     () => (reference?.services ?? []).filter((s) => !level || s.level_id === level),
@@ -113,6 +151,8 @@ function DemoProForm({
         headline: headline.trim() || null,
         bio: bio.trim() || null,
         photo_url: photo.trim() || null,
+        rating_avg: ratingCount > 0 ? ratingAvg : 0,
+        rating_count: ratingCount,
         languages: ["fr", "ar"],
         mode_home: true,
         mode_online: true,
@@ -148,6 +188,8 @@ function DemoProForm({
     setHeadline("");
     setBio("");
     setPhoto("");
+    setRatingAvg(0);
+    setRatingCount(0);
     setPicked([]);
     qc.invalidateQueries({ queryKey: ["admin-pros"] });
     qc.invalidateQueries({ queryKey: ["professionals"] });
@@ -245,8 +287,59 @@ function DemoProForm({
             className={inputClass}
           />
         </label>
+        <label className={labelClass}>
+          Note (0 à 5)
+          <input
+            type="number"
+            min={0}
+            max={5}
+            step={0.1}
+            value={ratingAvg}
+            onChange={(e) => setRatingAvg(Math.min(5, Math.max(0, Number(e.target.value))))}
+            className={inputClass}
+          />
+        </label>
+        <label className={labelClass}>
+          Nombre d'avis
+          <input
+            type="number"
+            min={0}
+            value={ratingCount}
+            onChange={(e) => setRatingCount(Math.max(0, Number(e.target.value)))}
+            className={inputClass}
+          />
+        </label>
         <label className={`${labelClass} sm:col-span-2`}>
-          Adresse de la photo (facultatif)
+          Photo (depuis votre ordinateur)
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void uploadPhoto(file);
+            }}
+            className={inputClass}
+          />
+        </label>
+        {photo && (
+          <div className="flex items-center gap-3 sm:col-span-2">
+            <img
+              src={photo}
+              alt="Aperçu de la photo"
+              className="h-16 w-16 rounded-full object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => setPhoto("")}
+              className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-bold text-secondary-foreground"
+            >
+              Retirer la photo
+            </button>
+          </div>
+        )}
+        <label className={`${labelClass} sm:col-span-2`}>
+          Ou adresse d'une photo en ligne (facultatif)
           <input value={photo} onChange={(e) => setPhoto(e.target.value)} className={inputClass} />
         </label>
       </div>
