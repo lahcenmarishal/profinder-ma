@@ -1,0 +1,424 @@
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { flexibleSlots } from "@/lib/marketplace";
+
+/**
+ * Création rapide de données de démonstration depuis la console d'administration :
+ * une fiche professeur ou une demande d'élève, marquées « Démo » et supprimables
+ * à tout moment depuis les listes ci-dessus.
+ */
+
+const inputClass =
+  "mt-1 w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground";
+const labelClass = "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
+
+function useReference() {
+  return useQuery({
+    queryKey: ["admin-demo-reference"],
+    queryFn: async () => {
+      const [cats, cities, levels, services] = await Promise.all([
+        supabase.from("categories").select("id, name").order("sort"),
+        supabase
+          .from("cities")
+          .select("id, name, lat, lng")
+          .eq("is_active", true)
+          .order("name")
+          .limit(500),
+        supabase.from("levels").select("id, name, sort").eq("is_active", true).order("sort"),
+        supabase
+          .from("services")
+          .select("id, name, level_id")
+          .eq("is_active", true)
+          .order("sort")
+          .limit(2000),
+      ]);
+      return {
+        categories: cats.data ?? [],
+        cities: cities.data ?? [],
+        levels: levels.data ?? [],
+        services: services.data ?? [],
+      };
+    },
+  });
+}
+
+export function AdminDemoCreate() {
+  const qc = useQueryClient();
+  const reference = useReference();
+  const categoryId = reference.data?.categories[0]?.id ?? "";
+
+  return (
+    <section className="mt-10">
+      <h2 className="text-xl font-bold">Créer des données de démonstration</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Les éléments créés ici portent l'étiquette « Démo » et peuvent être supprimés à tout moment.
+      </p>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <DemoProForm categoryId={categoryId} reference={reference.data} qc={qc} />
+        <DemoRequestForm categoryId={categoryId} reference={reference.data} qc={qc} />
+      </div>
+    </section>
+  );
+}
+
+type Reference = ReturnType<typeof useReference>["data"];
+type QC = ReturnType<typeof useQueryClient>;
+
+function DemoProForm({
+  categoryId,
+  reference,
+  qc,
+}: {
+  categoryId: string;
+  reference: Reference;
+  qc: QC;
+}) {
+  const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [level, setLevel] = useState("");
+  const [picked, setPicked] = useState<string[]>([]);
+  const [rate, setRate] = useState(150);
+  const [years, setYears] = useState(5);
+  const [headline, setHeadline] = useState("");
+  const [bio, setBio] = useState("");
+  const [photo, setPhoto] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const services = useMemo(
+    () => (reference?.services ?? []).filter((s) => !level || s.level_id === level),
+    [reference, level],
+  );
+
+  const submit = async () => {
+    if (!name.trim() || !categoryId) {
+      toast.error("Indiquez au moins un nom.");
+      return;
+    }
+    setSaving(true);
+    const chosenCity = (reference?.cities ?? []).find((c) => c.id === city);
+    const { data, error } = await supabase
+      .from("professionals")
+      .insert({
+        category_id: categoryId,
+        display_name: name.trim(),
+        city_id: city || null,
+        // Coordonnées de la ville : nécessaires pour la distance et la recherche par carte.
+        lat: chosenCity?.lat ?? null,
+        lng: chosenCity?.lng ?? null,
+        radius_km: 15,
+        hourly_rate: rate,
+        experience_years: years,
+        headline: headline.trim() || null,
+        bio: bio.trim() || null,
+        photo_url: photo.trim() || null,
+        languages: ["fr", "ar"],
+        mode_home: true,
+        mode_online: true,
+        status: "active",
+        is_demo: true,
+        is_verified: true,
+        verification_status: "verified",
+        onboarding_completed: true,
+        onboarding_step: 5,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      setSaving(false);
+      toast.error(error?.message ?? "Création impossible.");
+      return;
+    }
+    if (level)
+      await supabase
+        .from("professional_levels")
+        .insert({ professional_id: data.id, level_id: level });
+    if (picked.length > 0)
+      await supabase
+        .from("professional_services")
+        .insert(picked.map((service_id) => ({ professional_id: data.id, service_id })));
+    // Disponibilité « Flexible » par défaut, sinon la fiche est écartée des filtres horaires.
+    await supabase
+      .from("professional_availability")
+      .insert(flexibleSlots().map((s) => ({ professional_id: data.id, ...s })));
+    setSaving(false);
+    toast.success("Professeur de démonstration créé.");
+    setName("");
+    setHeadline("");
+    setBio("");
+    setPhoto("");
+    setPicked([]);
+    qc.invalidateQueries({ queryKey: ["admin-pros"] });
+    qc.invalidateQueries({ queryKey: ["professionals"] });
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <h3 className="font-bold">Professeur démo</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className={labelClass}>
+          Nom affiché
+          <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+        </label>
+        <label className={labelClass}>
+          Ville
+          <select value={city} onChange={(e) => setCity(e.target.value)} className={inputClass}>
+            <option value="">—</option>
+            {(reference?.cities ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={labelClass}>
+          Niveau
+          <select
+            value={level}
+            onChange={(e) => {
+              setLevel(e.target.value);
+              setPicked([]);
+            }}
+            className={inputClass}
+          >
+            <option value="">—</option>
+            {(reference?.levels ?? []).map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={labelClass}>
+          Matières (plusieurs possibles)
+          <select
+            multiple
+            size={5}
+            value={picked}
+            onChange={(e) =>
+              setPicked(Array.from(e.target.selectedOptions).map((o) => o.value))
+            }
+            className={inputClass}
+          >
+            {services.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={labelClass}>
+          Tarif (DH/h)
+          <input
+            type="number"
+            min={0}
+            value={rate}
+            onChange={(e) => setRate(Number(e.target.value))}
+            className={inputClass}
+          />
+        </label>
+        <label className={labelClass}>
+          Expérience (ans)
+          <input
+            type="number"
+            min={0}
+            value={years}
+            onChange={(e) => setYears(Number(e.target.value))}
+            className={inputClass}
+          />
+        </label>
+        <label className={`${labelClass} sm:col-span-2`}>
+          Accroche
+          <input
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+            className={inputClass}
+          />
+        </label>
+        <label className={`${labelClass} sm:col-span-2`}>
+          Présentation
+          <textarea
+            rows={3}
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className={inputClass}
+          />
+        </label>
+        <label className={`${labelClass} sm:col-span-2`}>
+          Adresse de la photo (facultatif)
+          <input value={photo} onChange={(e) => setPhoto(e.target.value)} className={inputClass} />
+        </label>
+      </div>
+      <button
+        onClick={submit}
+        disabled={saving}
+        className="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
+      >
+        {saving ? "Création…" : "Créer le professeur démo"}
+      </button>
+    </div>
+  );
+}
+
+function DemoRequestForm({
+  categoryId,
+  reference,
+  qc,
+}: {
+  categoryId: string;
+  reference: Reference;
+  qc: QC;
+}) {
+  const [city, setCity] = useState("");
+  const [area, setArea] = useState("");
+  const [level, setLevel] = useState("");
+  const [service, setService] = useState("");
+  const [description, setDescription] = useState("");
+  const [budgetMin, setBudgetMin] = useState(100);
+  const [budgetMax, setBudgetMax] = useState(200);
+  const [mode, setMode] = useState<"home" | "online" | "studio">("home");
+  const [saving, setSaving] = useState(false);
+
+  const services = useMemo(
+    () => (reference?.services ?? []).filter((s) => !level || s.level_id === level),
+    [reference, level],
+  );
+
+  const submit = async () => {
+    if (!categoryId) return;
+    setSaving(true);
+    const chosenCity = (reference?.cities ?? []).find((c) => c.id === city);
+    const expires = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+    const { error } = await supabase.from("requests").insert({
+      category_id: categoryId,
+      client_id: null,
+      city_id: city || null,
+      level_id: level || null,
+      service_id: service || null,
+      area: area.trim() || null,
+      description: description.trim() || null,
+      budget_min: budgetMin,
+      budget_max: budgetMax,
+      lat: chosenCity?.lat ?? null,
+      lng: chosenCity?.lng ?? null,
+      mode,
+      // Disponibilité souple pour que la demande ressorte dans tous les filtres.
+      slots: flexibleSlots(),
+      status: "active",
+      target_professional_id: null,
+      expires_at: expires,
+      is_demo: true,
+    });
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Demande de démonstration créée.");
+    setArea("");
+    setDescription("");
+    qc.invalidateQueries({ queryKey: ["admin-requests"] });
+    qc.invalidateQueries({ queryKey: ["recent-requests"] });
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <h3 className="font-bold">Demande démo</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className={labelClass}>
+          Ville
+          <select value={city} onChange={(e) => setCity(e.target.value)} className={inputClass}>
+            <option value="">—</option>
+            {(reference?.cities ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={labelClass}>
+          Quartier
+          <input value={area} onChange={(e) => setArea(e.target.value)} className={inputClass} />
+        </label>
+        <label className={labelClass}>
+          Niveau
+          <select
+            value={level}
+            onChange={(e) => {
+              setLevel(e.target.value);
+              setService("");
+            }}
+            className={inputClass}
+          >
+            <option value="">—</option>
+            {(reference?.levels ?? []).map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={labelClass}>
+          Matière
+          <select value={service} onChange={(e) => setService(e.target.value)} className={inputClass}>
+            <option value="">—</option>
+            {services.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={labelClass}>
+          Budget min (DH/h)
+          <input
+            type="number"
+            min={0}
+            value={budgetMin}
+            onChange={(e) => setBudgetMin(Number(e.target.value))}
+            className={inputClass}
+          />
+        </label>
+        <label className={labelClass}>
+          Budget max (DH/h)
+          <input
+            type="number"
+            min={0}
+            value={budgetMax}
+            onChange={(e) => setBudgetMax(Number(e.target.value))}
+            className={inputClass}
+          />
+        </label>
+        <label className={labelClass}>
+          Format
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value as "home" | "online" | "studio")}
+            className={inputClass}
+          >
+            <option value="home">À domicile</option>
+            <option value="online">En ligne</option>
+            <option value="studio">Chez le professeur</option>
+          </select>
+        </label>
+        <label className={`${labelClass} sm:col-span-2`}>
+          Description
+          <textarea
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={inputClass}
+          />
+        </label>
+      </div>
+      <button
+        onClick={submit}
+        disabled={saving}
+        className="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
+      >
+        {saving ? "Création…" : "Créer la demande démo"}
+      </button>
+    </div>
+  );
+}
