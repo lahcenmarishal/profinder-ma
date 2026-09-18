@@ -86,16 +86,34 @@ function AuthPage() {
       };
     }
 
+    const url = window.location.search + window.location.hash;
+    const hasProviderResponse = /(?:[?&#])(code|access_token)=/.test(url);
+
     if (oauthReturnInProgress()) {
-      setRedirecting(true);
-      // Filet de sécurité : sans session au bout de quelques secondes,
-      // l'inscription Google n'a pas abouti.
+      // Un marqueur seul peut rester après un retour manuel depuis Google. On
+      // ne masque donc le formulaire que si Google a réellement répondu ou si
+      // une session authentifiée est confirmée.
+      if (hasProviderResponse) setRedirecting(true);
+
+      const verifyReturn = async () => {
+        const { data, error } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (data.user && !error) {
+          setRedirecting(true);
+          return;
+        }
+        abortPendingOAuth(
+          hasProviderResponse
+            ? "La connexion Google n'a pas abouti. Veuillez réessayer."
+            : undefined,
+        );
+      };
+
+      void verifyReturn();
+      // Limite ferme : même si la vérification réseau ne répond pas, la page
+      // de connexion redevient utilisable et le marqueur obsolète est supprimé.
       timer = setTimeout(() => {
-        void ensureSession().then((session) => {
-          if (cancelled) return;
-          if (!session?.user)
-            abortPendingOAuth("La connexion Google n'a pas abouti. Veuillez réessayer.");
-        });
+        abortPendingOAuth("La connexion Google n'a pas abouti. Veuillez réessayer.");
       }, 8000);
       return () => {
         cancelled = true;
