@@ -55,7 +55,12 @@ function Admin() {
     queryKey: ["admin-requests"],
     enabled: isAdmin,
     queryFn: async () => {
-      const { data } = await supabase.from("requests").select("id, status");
+      const { data } = await supabase
+        .from("requests")
+        .select(
+          "id, status, description, area, budget_min, budget_max, is_demo, created_at, cities(name), services(name)",
+        )
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
@@ -135,6 +140,31 @@ function Admin() {
     qc.invalidateQueries({ queryKey: ["admin-pros"] });
   };
 
+  // Suppression définitive : fonctionne pour une fiche de démonstration
+  // comme pour un vrai compte, avec toutes ses données liées.
+  const deletePro = async (id: string, name: string) => {
+    if (!window.confirm(`Supprimer définitivement la fiche de ${name} ?`)) return;
+    const { error } = await supabase.from("professionals").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Fiche supprimée.");
+    qc.invalidateQueries({ queryKey: ["admin-pros"] });
+    qc.invalidateQueries({ queryKey: ["admin-verifications"] });
+  };
+
+  const deleteRequest = async (id: string) => {
+    if (!window.confirm("Supprimer définitivement cette demande ?")) return;
+    const { error } = await supabase.from("requests").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Demande supprimée.");
+    qc.invalidateQueries({ queryKey: ["admin-requests"] });
+  };
+
   const saveWeight = async (key: string, raw: string) => {
     let value: unknown;
     try {
@@ -200,7 +230,14 @@ function Admin() {
                 className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4"
               >
                 <div>
-                  <p className="font-semibold">{p.display_name}</p>
+                  <p className="flex items-center gap-2 font-semibold">
+                    {p.display_name}
+                    {p.is_demo && (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-foreground">
+                        Démo
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {Number(p.hourly_rate)} DH/h · plan {p.plan_code} · statut {p.status}
                   </p>
@@ -214,13 +251,62 @@ function Admin() {
                   </button>
                   <button
                     onClick={() => setStatus(p.id, "suspended")}
-                    className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
+                    className="rounded-lg bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground"
                   >
                     Suspendre
+                  </button>
+                  <button
+                    onClick={() => deletePro(p.id, p.display_name)}
+                    className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
+                  >
+                    Supprimer
                   </button>
                 </div>
               </div>
             ))}
+            {(pros.data ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground">Aucun professeur pour le moment.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <h2 className="text-xl font-bold">Demandes des élèves</h2>
+          <div className="mt-4 space-y-3">
+            {(requests.data ?? []).map((r) => (
+              <div
+                key={r.id}
+                className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4"
+              >
+                <div className="max-w-xl">
+                  <p className="flex items-center gap-2 font-semibold">
+                    {r.services?.name ?? "Matière non précisée"}
+                    {r.is_demo && (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-foreground">
+                        Démo
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.cities?.name ?? "Ville non précisée"}
+                    {r.area ? ` · ${r.area}` : ""} · statut {r.status}
+                    {r.budget_min && r.budget_max
+                      ? ` · ${Number(r.budget_min)}–${Number(r.budget_max)} DH/h`
+                      : ""}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.description}</p>
+                </div>
+                <button
+                  onClick={() => deleteRequest(r.id)}
+                  className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
+                >
+                  Supprimer
+                </button>
+              </div>
+            ))}
+            {(requests.data ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground">Aucune demande pour le moment.</p>
+            )}
           </div>
         </section>
 
