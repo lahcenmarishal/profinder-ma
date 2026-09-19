@@ -48,6 +48,10 @@ const bodySchema = z.discriminatedUnion("action", [
     action: z.literal("notify_proposal"),
     payload: z.object({ requestId: z.string().uuid(), professionalId: z.string().uuid() }),
   }),
+  z.object({
+    action: z.literal("notify_pro_matches"),
+    payload: z.object({ professionalId: z.string().uuid() }),
+  }),
 ]);
 
 const ALLOWED_ORIGINS = new Set([
