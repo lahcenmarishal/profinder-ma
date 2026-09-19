@@ -82,7 +82,7 @@ export const Route = createFileRoute("/publier")({
 function draftFromValues(values: NeedValues): RequestDraft {
   const num = (v: string) => (v.trim() === "" ? null : Number(v));
   return {
-    service_id: values.service || null,
+    service_ids: values.services,
     level_id: values.level || null,
     city_id: values.city || null,
     mode: values.mode,
@@ -118,8 +118,12 @@ function PublishPage() {
         value: ref.data?.levels.find((l) => l.id === need.level_id)?.name ?? "À préciser",
       },
       {
-        label: "Matière",
-        value: ref.data?.services.find((s) => s.id === need.service_id)?.name ?? "Toutes matières",
+        label: "Matières",
+        value:
+          need.service_ids
+            .map((id) => ref.data?.services.find((s) => s.id === id)?.name)
+            .filter(Boolean)
+            .join(", ") || "Toutes matières",
       },
       {
         label: "Type de cours",
@@ -315,7 +319,9 @@ function PublishPage() {
               title="Votre besoin de cours"
               submitLabel={user ? "Publier ma demande" : "Continuer"}
               initial={{
-                service: search.service ?? need?.service_id ?? "",
+                services: search.service
+                  ? search.service.split(",").filter(Boolean)
+                  : (need?.service_ids ?? []),
                 level: search.level ?? need?.level_id ?? "",
                 city: search.city ?? need?.city_id ?? "",
                 mode: search.mode ?? need?.mode ?? "home",
