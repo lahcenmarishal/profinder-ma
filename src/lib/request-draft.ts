@@ -5,7 +5,8 @@ import type { Slot } from "@/lib/marketplace";
 const DRAFT_KEY = "profinder.request_draft";
 
 export type RequestDraft = {
-  service_id: string | null;
+  /** Matières souhaitées (plusieurs possibles). */
+  service_ids: string[];
   level_id: string | null;
   city_id: string | null;
   mode: "home" | "studio" | "online";
@@ -30,9 +31,17 @@ export function loadRequestDraft(): RequestDraft | null {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as RequestDraft;
+    const parsed = JSON.parse(raw) as RequestDraft & { service_id?: string | null };
     if (!parsed || typeof parsed !== "object") return null;
-    return { ...parsed, slots: Array.isArray(parsed.slots) ? parsed.slots : [] };
+    return {
+      ...parsed,
+      slots: Array.isArray(parsed.slots) ? parsed.slots : [],
+      service_ids: Array.isArray(parsed.service_ids)
+        ? parsed.service_ids
+        : parsed.service_id
+          ? [parsed.service_id]
+          : [],
+    };
   } catch {
     return null;
   }
@@ -55,7 +64,8 @@ export async function publishRequest(clientId: string, draft: RequestDraft) {
     .insert({
       client_id: clientId,
       category_id: categoryId,
-      service_id: draft.service_id,
+      service_id: draft.service_ids[0] ?? null,
+      service_ids: draft.service_ids,
       level_id: draft.level_id,
       city_id: draft.city_id,
       mode: draft.mode,
