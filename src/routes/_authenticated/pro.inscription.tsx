@@ -28,21 +28,6 @@ import {
   completionOf,
 } from "@/lib/teacher-onboarding";
 
-/**
- * Dès que le profil devient actif, le professeur est prévenu (notification et
- * email) des demandes déjà publiées qui correspondent à son profil.
- */
-async function announceMatchingRequests(professionalId: string) {
-  try {
-    const { notifyProMatches } = await import("@/lib/notify.functions");
-    await notifyProMatches({ data: { professionalId } });
-  } catch (error) {
-    console.error("[notify] demandes correspondantes:", error);
-  }
-}
-
-
-
 export const Route = createFileRoute("/_authenticated/pro/inscription")({
   head: () => ({
     meta: [
@@ -69,8 +54,8 @@ const input =
 const label = "text-sm font-medium";
 const chip = (active: boolean) =>
   active
-    ? "rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground"
-    : "rounded-full bg-muted px-3 py-1 text-xs";
+    ? "max-w-full break-words whitespace-normal rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground"
+    : "max-w-full break-words whitespace-normal rounded-full bg-muted px-3 py-1 text-xs";
 
 function ProOnboarding() {
   const { user } = useAuth();
@@ -545,7 +530,6 @@ function ProOnboarding() {
         toast.error(error.message);
         return;
       }
-      await announceMatchingRequests(id);
       toast.success("Votre profil est actif. Vous pourrez envoyer vos documents plus tard.");
       await qc.invalidateQueries();
       navigate({ to: "/pro" });
@@ -586,7 +570,6 @@ function ProOnboarding() {
         toast.error(error.message);
         return;
       }
-      await announceMatchingRequests(pro.id);
       toast.success("✅ Votre dossier a été envoyé à l'administration pour vérification.");
       await qc.invalidateQueries();
       navigate({ to: "/pro" });
@@ -674,9 +657,9 @@ function ProOnboarding() {
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <SiteHeader variant="pro" />
-      <main className="mx-auto max-w-3xl px-4 py-8 pb-28">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+      <main className="mx-auto max-w-3xl overflow-x-hidden px-3 py-5 pb-28 sm:px-4 sm:py-8">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+          <div className="min-w-0">
             <h1 className="text-3xl font-extrabold tracking-tight">Mon profil</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Vos réponses sont enregistrées à chaque étape : vous pouvez quitter et reprendre plus
@@ -696,7 +679,7 @@ function ProOnboarding() {
 
         <OnboardingProgress current={step} className="mt-6" />
 
-        <ol className="mt-4 flex flex-wrap gap-2 text-xs">
+        <ol className="mt-4 flex max-w-full flex-wrap gap-2 text-xs">
           {ONBOARDING_STEPS.map((s, i) => (
             <li key={s.key}>
               <button
@@ -716,8 +699,8 @@ function ProOnboarding() {
           ))}
         </ol>
 
-        <section className="mt-6 rounded-3xl border border-border bg-card p-6 shadow-panel">
-          <h2 className="text-xl font-bold">
+        <section className="mt-6 min-w-0 rounded-2xl border border-border bg-card p-4 shadow-panel sm:rounded-3xl sm:p-6">
+          <h2 className="break-words text-xl font-bold">
             Étape {step} — {stepTitle}
           </h2>
 
@@ -760,7 +743,7 @@ function ProOnboarding() {
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <span className={label}>Photo de profil (facultative, fortement recommandée)</span>
-                <div className="mt-2 flex items-center gap-4">
+                <div className="mt-2 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
                   {form.photo_url ? (
                     <img
                       src={form.photo_url}
@@ -777,7 +760,7 @@ function ProOnboarding() {
                       const file = e.target.files?.[0];
                       if (file) void uploadPhoto(file);
                     }}
-                    className="text-sm"
+                    className="min-w-0 max-w-full text-sm"
                   />
                 </div>
               </div>
@@ -1140,11 +1123,11 @@ function ProOnboarding() {
                 également acceptés). La vérification est optionnelle — votre profil reste actif sans
                 elle, simplement sans le badge « Professeur vérifié ✓ ».
               </p>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="grid min-w-0 gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
                 <select
                   value={docKind}
                   onChange={(e) => setDocKind(e.target.value)}
-                  className="rounded-xl border border-border bg-muted px-3 py-2 text-sm"
+                  className="min-w-0 max-w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm"
                 >
                   {DOCUMENT_KINDS.map((k) => (
                     <option key={k.value} value={k.value}>
@@ -1161,7 +1144,7 @@ function ProOnboarding() {
                     if (file) void uploadDocument(file);
                     e.target.value = "";
                   }}
-                  className="text-sm"
+                  className="min-w-0 max-w-full text-sm"
                 />
               </div>
 
@@ -1230,18 +1213,18 @@ function ProOnboarding() {
             </div>
           )}
 
-          <div className="mt-8 flex items-center justify-between gap-3">
+          <div className="mt-8 grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
             <button
               onClick={() => setStep(Math.max(1, step - 1))}
               disabled={step === 1}
-              className="rounded-xl border border-border px-4 py-2 text-sm font-semibold disabled:opacity-40"
+              className="min-w-0 rounded-xl border border-border px-3 py-2 text-sm font-semibold disabled:opacity-40 sm:px-4"
             >
               Précédent
             </button>
-            <div className="flex gap-2">
+            <div className="contents sm:flex sm:gap-2">
               <Link
                 to="/pro"
-                className="rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:bg-muted"
+                className="min-w-0 rounded-xl border border-border px-3 py-2 text-center text-sm font-semibold hover:bg-muted sm:px-4"
               >
                 Reprendre plus tard
               </Link>
@@ -1249,7 +1232,7 @@ function ProOnboarding() {
                 <button
                   onClick={goNext}
                   disabled={busy}
-                  className="rounded-xl bg-primary px-5 py-2 text-sm font-bold text-primary-foreground disabled:opacity-60"
+                  className="col-span-2 min-w-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-60 sm:col-auto sm:px-5 sm:py-2"
                 >
                   Enregistrer et continuer
                 </button>
