@@ -58,7 +58,8 @@ export async function performNotifyNewRequest(requestId: string): Promise<{ noti
     .in("id", proIds);
 
   const rows = (targets ?? [])
-    .filter((t) => Boolean(t.user_id))
+    .filter((t) => Boolean(t.user_id) && !alreadyNotified.has(t.user_id as string))
+
     .map((t) => ({
       user_id: t.user_id as string,
       type: request.target_professional_id ? "request_targeted" : "request_match",
