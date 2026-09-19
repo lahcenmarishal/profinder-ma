@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/mon-besoin")({
 function needFromValues(values: NeedValues): StudentNeed {
   const num = (v: string) => (v.trim() === "" ? null : Number(v));
   return {
-    service_id: values.service || null,
+    service_ids: values.services,
     level_id: values.level || null,
     city_id: values.city || null,
     mode: values.mode,
@@ -63,6 +63,9 @@ function NeedStepPage() {
   const [busy, setBusy] = useState(false);
   const [target, setTarget] = useState<PendingProTarget | null>(null);
   const [targetName, setTargetName] = useState<string>("");
+  // Téléphone : non demandé à l'inscription Google, il est donc collecté ici.
+  const [phone, setPhone] = useState("");
+  const [needsPhone, setNeedsPhone] = useState(false);
 
   useEffect(() => {
     const pending = loadPendingProTarget();
@@ -76,6 +79,21 @@ function NeedStepPage() {
       .then(({ data }) => setTargetName(data?.display_name ?? ""));
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+    void supabase
+      .from("profiles")
+      .select("phone")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const existing =
+          data?.phone || (user.user_metadata?.["phone"] as string | undefined) || "";
+        setPhone(existing);
+        setNeedsPhone(!existing);
+      });
+  }, [user]);
+
   const draft = typeof window === "undefined" ? null : loadRequestDraft();
 
   const onSubmit = async (values: NeedValues) => {
@@ -85,8 +103,19 @@ function NeedStepPage() {
       toast.error("Indiquez votre ville pour recevoir des propositions locales.");
       return;
     }
+    const trimmedPhone = phone.trim();
+    if (needsPhone && trimmedPhone.replace(/\D/g, "").length < 9) {
+      toast.error("Indiquez un numéro de téléphone valide pour être contacté.");
+      return;
+    }
     setBusy(true);
     try {
+      if (trimmedPhone) {
+        await supabase
+          .from("profiles")
+          .update({ phone: trimmedPhone })
+          .eq("id", user.id);
+      }
       saveStudentNeed(need);
       clearRequestDraft();
       if (target) {
@@ -121,6 +150,30 @@ function NeedStepPage() {
             : "Indiquez simplement le niveau, la matière et le lieu. Ces informations seront réutilisées quand vous publierez une demande."}
         </p>
 
+        {needsPhone && (
+          <section className="mb-6 rounded-3xl border border-border bg-card p-6 shadow-panel">
+            <label
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              htmlFor="need-phone-account"
+            >
+              Numéro de téléphone (obligatoire)
+            </label>
+            <input
+              id="need-phone-account"
+              type="tel"
+              required
+              maxLength={30}
+              placeholder="06 12 34 56 78"
+              className="mt-2 w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Les professeurs en ont besoin pour vous répondre rapidement.
+            </p>
+          </section>
+        )}
+
         <NeedForm
           services={ref.data?.services ?? []}
           levels={ref.data?.levels ?? []}
@@ -130,7 +183,7 @@ function NeedStepPage() {
           title="Votre besoin de cours"
           submitLabel={busy ? "Enregistrement…" : target ? "Envoyer ma demande" : "Enregistrer mon besoin"}
           initial={{
-            service: draft?.service_id ?? "",
+            services: draft?.service_ids ?? [],
             level: draft?.level_id ?? "",
             city: draft?.city_id ?? "",
             mode: draft?.mode ?? "home",
