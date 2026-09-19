@@ -31,6 +31,7 @@ import {
   planBoostFor,
   scoreMatch,
   serviceName,
+  serviceNames,
   timeAgo,
   whatsappLink,
 } from "@/lib/marketplace";
@@ -216,7 +217,10 @@ function Home() {
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {(requests.data ?? []).map((req) => {
-                const subject = serviceName(req.service_id) ?? "Soutien scolaire";
+                const subject =
+                  serviceNames(req.service_ids) ??
+                  serviceName(req.service_id) ??
+                  "Soutien scolaire";
                 const level = levelName(req.level_id);
                 const city = cityName(req.city_id);
                 const contact = contacts[req.id];
