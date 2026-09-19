@@ -35,6 +35,8 @@ export const Route = createFileRoute("/_authenticated/compte")({
         property: "og:description",
         content: "Vos demandes, propositions et réservations ProFinder en un coup d'œil.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ClientSpace,
@@ -75,7 +77,7 @@ function ClientSpace() {
     setPublishing(true);
     try {
       const id = await publishRequest(user.id, {
-        service_ids: need.service_ids,
+        service_id: need.service_id,
         level_id: need.level_id,
         city_id: need.city_id,
         mode: need.mode,
@@ -98,7 +100,7 @@ function ClientSpace() {
 
   const publishSearch = need
     ? {
-        service: need.service_ids.join(",") || undefined,
+        service: need.service_id || undefined,
         level: need.level_id || undefined,
         city: need.city_id || undefined,
         mode: need.mode,
@@ -161,7 +163,7 @@ function ClientSpace() {
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <SiteHeader variant="client" />
-      <main className="mx-auto max-w-5xl space-y-8 px-4 py-8 pb-28">
+      <main className="mx-auto max-w-5xl space-y-6 px-3 py-5 pb-28 sm:space-y-8 sm:px-4 sm:py-8">
         <WorkspaceHero
           eyebrow="Espace élève"
           title={`Bonjour ${displayName}`}
@@ -177,13 +179,13 @@ function ClientSpace() {
               <Link
                 to="/publier"
                 search={publishSearch}
-                className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+                className="flex w-full items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground sm:w-auto"
               >
                 Publier une demande
               </Link>
               <Link
                 to="/professeurs"
-                className="flex items-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-muted"
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-muted sm:w-auto"
               >
                 <Search className="size-4" />
                 Trouver un professeur
@@ -193,7 +195,7 @@ function ClientSpace() {
         />
 
         {!showPublish ? (
-          <section className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-8 text-center">
+          <section className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-5 text-center sm:rounded-3xl sm:p-8">
             <h2 className="mb-3 text-2xl font-extrabold tracking-tight md:text-3xl">
               Publiez votre demande et recevez plusieurs propositions
             </h2>
@@ -222,7 +224,7 @@ function ClientSpace() {
             )}
           </section>
         ) : (
-          <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:rounded-3xl sm:p-6">
             <div className="mb-5 flex items-center justify-between gap-3">
               <h2 className="text-xl font-bold">Publier votre demande</h2>
               <button
@@ -238,11 +240,7 @@ function ClientSpace() {
               <div className="mb-5 rounded-2xl border border-border bg-muted/40 p-4 text-sm">
                 <p className="font-semibold">Récapitulatif de votre besoin</p>
                 <p className="text-muted-foreground">
-                  {need.service_ids
-                    .map((id) => ref.data?.services.find((s) => s.id === id)?.name)
-                    .filter(Boolean)
-                    .join(", ") || "Toutes matières"}{" "}
-                  ·{" "}
+                  {ref.data?.services.find((s) => s.id === need.service_id)?.name ?? "Toutes matières"} ·{" "}
                   {ref.data?.levels.find((l) => l.id === need.level_id)?.name ?? "—"} ·{" "}
                   {ref.data?.cities.find((c) => c.id === need.city_id)?.name ?? "—"} ·{" "}
                   {MODE_LABELS[need.mode]}
@@ -312,7 +310,7 @@ function ClientSpace() {
           </section>
         )}
 
-        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:rounded-3xl sm:p-6">
           <div className="mb-5 flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold">Mes dernières demandes</h2>
             <Link to="/demandes" className="text-sm font-semibold text-primary hover:underline">
@@ -345,15 +343,8 @@ function ClientSpace() {
                 >
                   <div>
                     <p className="font-semibold">
-                      {((r.service_ids ?? []).length > 0
-                        ? (r.service_ids ?? [])
-                        : r.service_id
-                          ? [r.service_id]
-                          : []
-                      )
-                        .map((id) => ref.data?.services.find((s) => s.id === id)?.name)
-                        .filter(Boolean)
-                        .join(", ") || "Toutes matières"}
+                      {ref.data?.services.find((s) => s.id === r.service_id)?.name ??
+                        "Toutes matières"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {ref.data?.cities.find((c) => c.id === r.city_id)?.name ?? "—"} ·{" "}
