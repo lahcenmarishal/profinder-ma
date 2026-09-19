@@ -208,6 +208,7 @@ function ProRequests() {
         return requestMatchesPro(
           {
             service_id: r.service_id,
+            service_ids: r.service_ids,
             level_id: r.level_id,
             city_id: r.city_id,
             mode: r.mode,
