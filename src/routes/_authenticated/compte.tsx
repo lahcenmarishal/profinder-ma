@@ -75,7 +75,7 @@ function ClientSpace() {
     setPublishing(true);
     try {
       const id = await publishRequest(user.id, {
-        service_id: need.service_id,
+        service_ids: need.service_ids,
         level_id: need.level_id,
         city_id: need.city_id,
         mode: need.mode,
@@ -98,7 +98,7 @@ function ClientSpace() {
 
   const publishSearch = need
     ? {
-        service: need.service_id || undefined,
+        service: need.service_ids.join(",") || undefined,
         level: need.level_id || undefined,
         city: need.city_id || undefined,
         mode: need.mode,
@@ -238,7 +238,11 @@ function ClientSpace() {
               <div className="mb-5 rounded-2xl border border-border bg-muted/40 p-4 text-sm">
                 <p className="font-semibold">Récapitulatif de votre besoin</p>
                 <p className="text-muted-foreground">
-                  {ref.data?.services.find((s) => s.id === need.service_id)?.name ?? "Toutes matières"} ·{" "}
+                  {need.service_ids
+                    .map((id) => ref.data?.services.find((s) => s.id === id)?.name)
+                    .filter(Boolean)
+                    .join(", ") || "Toutes matières"}{" "}
+                  ·{" "}
                   {ref.data?.levels.find((l) => l.id === need.level_id)?.name ?? "—"} ·{" "}
                   {ref.data?.cities.find((c) => c.id === need.city_id)?.name ?? "—"} ·{" "}
                   {MODE_LABELS[need.mode]}
@@ -341,8 +345,15 @@ function ClientSpace() {
                 >
                   <div>
                     <p className="font-semibold">
-                      {ref.data?.services.find((s) => s.id === r.service_id)?.name ??
-                        "Toutes matières"}
+                      {((r.service_ids ?? []).length > 0
+                        ? (r.service_ids ?? [])
+                        : r.service_id
+                          ? [r.service_id]
+                          : []
+                      )
+                        .map((id) => ref.data?.services.find((s) => s.id === id)?.name)
+                        .filter(Boolean)
+                        .join(", ") || "Toutes matières"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {ref.data?.cities.find((c) => c.id === r.city_id)?.name ?? "—"} ·{" "}
