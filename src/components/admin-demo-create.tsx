@@ -79,7 +79,7 @@ function DemoProForm({
 }) {
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
-  const [level, setLevel] = useState("");
+  const [levels, setLevels] = useState<string[]>([]);
   const [picked, setPicked] = useState<string[]>([]);
   const [availability, setAvailability] = useState<Slot[]>(flexibleSlots());
   const [rate, setRate] = useState(150);
@@ -127,8 +127,11 @@ function DemoProForm({
   };
 
   const services = useMemo(
-    () => (reference?.services ?? []).filter((s) => !level || s.level_id === level),
-    [reference, level],
+    () =>
+      (reference?.services ?? []).filter(
+        (s) => levels.length === 0 || levels.includes(s.level_id ?? ""),
+      ),
+    [reference, levels],
   );
 
   const submit = async () => {
@@ -181,7 +184,7 @@ function DemoProForm({
     const levelIds = Array.from(
       new Set(
         [
-          level,
+          ...levels,
           ...(reference?.services ?? [])
             .filter((s) => picked.includes(s.id))
             .map((s) => s.level_id ?? ""),
@@ -244,24 +247,33 @@ function DemoProForm({
             ))}
           </select>
         </label>
-        <label className={labelClass}>
-          Niveau
-          <select
-            value={level}
-            onChange={(e) => {
-              setLevel(e.target.value);
-              setPicked([]);
-            }}
-            className={inputClass}
-          >
-            <option value="">—</option>
-            {(reference?.levels ?? []).map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className={`${labelClass} sm:col-span-2`}>
+          Niveaux (un ou plusieurs)
+          <div className="mt-2 flex max-h-32 flex-wrap gap-2 overflow-y-auto rounded-xl border border-border bg-muted p-2">
+            {(reference?.levels ?? []).map((l) => {
+              const active = levels.includes(l.id);
+              return (
+                <button
+                  key={l.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() =>
+                    setLevels((p) =>
+                      p.includes(l.id) ? p.filter((x) => x !== l.id) : [...p, l.id],
+                    )
+                  }
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold normal-case transition ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                  }`}
+                >
+                  {l.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className={`${labelClass} sm:col-span-2`}>
           Matières (une ou plusieurs)
           <div className="mt-2 flex max-h-44 flex-wrap gap-2 overflow-y-auto rounded-xl border border-border bg-muted p-2">
