@@ -1001,6 +1001,7 @@ export type Database = {
           lng: number | null
           mode: Database["public"]["Enums"]["lesson_mode"]
           service_id: string | null
+          service_ids: string[]
           slots: Json
           status: Database["public"]["Enums"]["request_status"]
           target_professional_id: string | null
@@ -1023,6 +1024,7 @@ export type Database = {
           lng?: number | null
           mode?: Database["public"]["Enums"]["lesson_mode"]
           service_id?: string | null
+          service_ids?: string[]
           slots?: Json
           status?: Database["public"]["Enums"]["request_status"]
           target_professional_id?: string | null
@@ -1045,6 +1047,7 @@ export type Database = {
           lng?: number | null
           mode?: Database["public"]["Enums"]["lesson_mode"]
           service_id?: string | null
+          service_ids?: string[]
           slots?: Json
           status?: Database["public"]["Enums"]["request_status"]
           target_professional_id?: string | null
