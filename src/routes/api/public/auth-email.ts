@@ -108,9 +108,8 @@ export const Route = createFileRoute("/api/public/auth-email")({
         const { performRecovery, performResend, performSignup, performWelcome } = await import(
           "@/lib/email/auth-email.server"
         );
-        const { performNotifyNewRequest, performNotifyProposal } = await import(
-          "@/lib/notify.server"
-        );
+        const { performNotifyNewRequest, performNotifyProMatches, performNotifyProposal } =
+          await import("@/lib/notify.server");
         const body = parsed.data;
         if (body.action === "signup") return json(await performSignup(body.payload), 200, origin);
         if (body.action === "resend") return json(await performResend(body.payload), 200, origin);
@@ -118,6 +117,8 @@ export const Route = createFileRoute("/api/public/auth-email")({
         if (body.action === "welcome") return json(await performWelcome(body.payload), 200, origin);
         if (body.action === "notify_request")
           return json(await performNotifyNewRequest(body.payload.requestId), 200, origin);
+        if (body.action === "notify_pro_matches")
+          return json(await performNotifyProMatches(body.payload.professionalId), 200, origin);
         return json(await performNotifyProposal(body.payload), 200, origin);
       },
     },
