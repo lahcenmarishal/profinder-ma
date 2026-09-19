@@ -17,7 +17,8 @@ type Option = {
 
 
 export type NeedValues = {
-  service: string;
+  /** Matières souhaitées (plusieurs possibles). */
+  services: string[];
   level: string;
   city: string;
   mode: "home" | "studio" | "online";
@@ -81,7 +82,7 @@ export function NeedForm({
   const min = rateRange?.min ?? 40;
   const max = rateRange?.max ?? 400;
   const [values, setValues] = useState<NeedValues>(() => ({
-    service: initial?.service ?? "",
+    services: initial?.services ?? [],
     level: initial?.level ?? "",
     city: initial?.city ?? "",
     mode: initial?.mode ?? "home",
@@ -105,11 +106,19 @@ export function NeedForm({
     () => levels.find((l) => l.id === initial?.level)?.cycle ?? "",
   );
   const [specialty, setSpecialty] = useState<string>(
-    () => services.find((s) => s.id === initial?.service)?.specialty_id ?? "",
+    () => services.find((s) => s.id === initial?.services?.[0])?.specialty_id ?? "",
   );
 
   const set = (key: keyof NeedValues, value: string | boolean) =>
     setValues((v) => ({ ...v, [key]: value }));
+
+  const toggleService = (id: string) =>
+    setValues((v) => ({
+      ...v,
+      services: v.services.includes(id)
+        ? v.services.filter((s) => s !== id)
+        : [...v.services, id],
+    }));
 
   const cycles = cyclesOf(levels);
   const levelsForCycle = cycle ? levels.filter((l) => l.cycle === cycle) : [];
@@ -196,7 +205,7 @@ export function NeedForm({
           onChange={(e) => {
             setCycle(e.target.value);
             setSpecialty("");
-            setValues((v) => ({ ...v, level: "", service: "" }));
+            setValues((v) => ({ ...v, level: "", services: [] }));
           }}
         >
           <option value="">Choisir un niveau…</option>
@@ -218,7 +227,7 @@ export function NeedForm({
             value={values.level}
             onChange={(e) => {
               setSpecialty("");
-              setValues((v) => ({ ...v, level: e.target.value, service: "" }));
+              setValues((v) => ({ ...v, level: e.target.value, services: [] }));
             }}
           >
             <option value="">
@@ -243,7 +252,7 @@ export function NeedForm({
             value={specialty}
             onChange={(e) => {
               setSpecialty(e.target.value);
-              setValues((v) => ({ ...v, service: "" }));
+              setValues((v) => ({ ...v, services: [] }));
             }}
           >
             <option value="">Choisir une spécialité…</option>
@@ -256,23 +265,33 @@ export function NeedForm({
         </div>
       )}
       {values.level && (specialtiesForLevel.length === 0 || specialty) && (
-        <div className="space-y-1">
-          <label className={label} htmlFor="need-service">
-            Matière
-          </label>
-          <select
-            id="need-service"
-            className={field}
-            value={values.service}
-            onChange={(e) => set("service", e.target.value)}
-          >
-            <option value="">Toutes les matières</option>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+        <div className="space-y-2 md:col-span-2 lg:col-span-4">
+          <span className={label}>Matières (plusieurs choix possibles)</span>
+          <div className="flex flex-wrap gap-2">
+            {subjects.map((s) => {
+              const active = values.services.includes(s.id);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => toggleService(s.id)}
+                  className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-muted text-foreground hover:border-primary"
+                  }`}
+                >
+                  {s.name}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {values.services.length === 0
+              ? "Aucune matière sélectionnée : toutes les matières."
+              : `${values.services.length} matière${values.services.length > 1 ? "s" : ""} sélectionnée${values.services.length > 1 ? "s" : ""}.`}
+          </p>
         </div>
       )}
     </div>
@@ -290,7 +309,7 @@ export function NeedForm({
             navigate({
               to: "/professeurs",
               search: {
-                service: values.service || undefined,
+                service: values.services.join(",") || undefined,
                 level: values.level || undefined,
                 city: values.city || undefined,
                 mode: values.mode,
