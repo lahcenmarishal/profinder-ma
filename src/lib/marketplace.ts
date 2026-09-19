@@ -93,6 +93,8 @@ export type ProfessionalRow = {
 
 export type Criteria = {
   service_id?: string | null | undefined;
+  /** Plusieurs matières souhaitées : un professeur correspond s'il en couvre au moins une. */
+  service_ids?: string[] | undefined;
   level_id?: string | null | undefined;
   city_id?: string | null | undefined;
   mode?: "home" | "studio" | "online" | undefined;
@@ -151,8 +153,17 @@ export function scoreMatch(
     detail[key] = Math.round(ratio * 100);
   };
 
-  if (criteria.service_id) {
-    add("service", pro.professional_services.some((s) => s.service_id === criteria.service_id) ? 1 : 0);
+  const wantedServices =
+    criteria.service_ids && criteria.service_ids.length > 0
+      ? criteria.service_ids
+      : criteria.service_id
+        ? [criteria.service_id]
+        : [];
+  if (wantedServices.length > 0) {
+    const covered = wantedServices.filter((id) =>
+      pro.professional_services.some((s) => s.service_id === id),
+    ).length;
+    add("service", covered / wantedServices.length);
   }
   if (criteria.level_id) {
     add("level", pro.professional_levels.some((l) => l.level_id === criteria.level_id) ? 1 : 0);
@@ -207,6 +218,7 @@ export type MatchProfile = {
 /** Critères d'une demande client, tels que stockés en base. */
 export type MatchRequest = {
   service_id: string | null;
+  service_ids?: string[] | null;
   level_id: string | null;
   city_id: string | null;
   mode: "home" | "studio" | "online";
@@ -226,7 +238,17 @@ export function requestMatchesPro(req: MatchRequest, pro: MatchProfile): boolean
   if (req.mode !== "online" && req.city_id && pro.city_id && pro.city_id !== req.city_id)
     return false;
 
-  if (req.service_id && pro.services.length > 0 && !pro.services.includes(req.service_id))
+  const wantedServices =
+    req.service_ids && req.service_ids.length > 0
+      ? req.service_ids
+      : req.service_id
+        ? [req.service_id]
+        : [];
+  if (
+    wantedServices.length > 0 &&
+    pro.services.length > 0 &&
+    !wantedServices.some((id) => pro.services.includes(id))
+  )
     return false;
   if (req.level_id && pro.levels.length > 0 && !pro.levels.includes(req.level_id)) return false;
 
@@ -397,6 +419,7 @@ export type RecentRequestRow = {
   category_id: string;
   level_id: string | null;
   service_id: string | null;
+  service_ids: string[] | null;
   city_id: string | null;
   area: string | null;
   description: string | null;
@@ -413,7 +436,7 @@ export async function fetchRecentRequests(limit = 6) {
   const { data, error } = await supabase
     .from("requests")
     .select(
-      "id,category_id,level_id,service_id,city_id,area,description,budget_min,budget_max,mode,slots,status,created_at",
+      "id,category_id,level_id,service_id,service_ids,city_id,area,description,budget_min,budget_max,mode,slots,status,created_at",
     )
     .in("status", ["active", "proposals_received"])
     .is("target_professional_id", null)
@@ -429,6 +452,7 @@ export type DirectRequestInput = {
   categoryId: string;
   clientId?: string | null;
   service_id: string | null;
+  service_ids?: string[];
   level_id: string | null;
   city_id: string | null;
   mode: "home" | "studio" | "online";
@@ -454,7 +478,8 @@ export async function submitDirectRequest(input: DirectRequestInput) {
       client_id: input.clientId ?? null,
       category_id: input.categoryId,
       target_professional_id: input.professionalId,
-      service_id: input.service_id,
+      service_id: input.service_id ?? input.service_ids?.[0] ?? null,
+      service_ids: input.service_ids ?? (input.service_id ? [input.service_id] : []),
       level_id: input.level_id,
       city_id: input.city_id,
       mode: input.mode,
@@ -490,6 +515,17 @@ export async function submitDirectRequest(input: DirectRequestInput) {
 
 }
 
+
+/** Liste de matières séparée par des virgules (paramètre d'URL) → identifiants. */
+export function parseServiceIds(value?: string | null): string[] {
+  return value ? value.split(",").filter(Boolean) : [];
+}
+
+/** « Maths, Physique » à partir d'une liste d'identifiants de matières. */
+export function serviceNames(ids?: string[] | null): string | null {
+  const names = (ids ?? []).map((id) => serviceName(id)).filter(Boolean);
+  return names.length > 0 ? names.join(", ") : null;
+}
 
 export function serviceName(id?: string | null) {
   return SERVICES.find((s) => s.id === id)?.name ?? null;
