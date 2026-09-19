@@ -9,6 +9,7 @@ import {
   fetchProfessionals,
   fetchReferenceData,
   modeAllowed,
+  parseServiceIds,
   planBoostFor,
   scoreMatch,
   type RateRange,
@@ -80,7 +81,7 @@ function Results() {
   const pickedLng = search.lng ? Number(search.lng) : null;
 
   const criteria = {
-    service_id: search.service ?? null,
+    service_ids: parseServiceIds(search.service),
     level_id: search.level ?? null,
     city_id: search.city ?? null,
     mode: search.mode,
@@ -128,7 +129,7 @@ function Results() {
             cities={ref.data?.cities ?? []}
             rateRange={rateRange}
             initial={{
-              service: search.service ?? "",
+              services: parseServiceIds(search.service),
               level: search.level ?? "",
               city: search.city ?? "",
               mode: search.mode ?? "home",
