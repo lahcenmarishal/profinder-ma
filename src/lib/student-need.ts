@@ -3,7 +3,8 @@ import { submitDirectRequest, type Slot } from "@/lib/marketplace";
 
 /** Besoin exprimé par l'élève / le parent à l'étape 2 de l'inscription. */
 export type StudentNeed = {
-  service_id: string | null;
+  /** Matières souhaitées (plusieurs possibles). */
+  service_ids: string[];
   level_id: string | null;
   city_id: string | null;
   mode: "home" | "studio" | "online";
@@ -49,9 +50,17 @@ function remove(key: string) {
 
 export const saveStudentNeed = (need: StudentNeed) => write(NEED_KEY, need);
 export const loadStudentNeed = () => {
-  const need = read<StudentNeed>(NEED_KEY);
+  const need = read<StudentNeed & { service_id?: string | null }>(NEED_KEY);
   if (!need) return null;
-  return { ...need, slots: Array.isArray(need.slots) ? need.slots : [] };
+  return {
+    ...need,
+    slots: Array.isArray(need.slots) ? need.slots : [],
+    service_ids: Array.isArray(need.service_ids)
+      ? need.service_ids
+      : need.service_id
+        ? [need.service_id]
+        : [],
+  } as StudentNeed;
 };
 export const clearStudentNeed = () => remove(NEED_KEY);
 
@@ -81,7 +90,7 @@ export async function resolveStudentNeed(userId: string): Promise<StudentNeed | 
   const { data } = await supabase
     .from("requests")
     .select(
-      "service_id, level_id, city_id, mode, budget_min, budget_max, slots, description, area, lat, lng",
+      "service_id, service_ids, level_id, city_id, mode, budget_min, budget_max, slots, description, area, lat, lng",
     )
     .eq("client_id", userId)
     .order("created_at", { ascending: false })
@@ -89,7 +98,12 @@ export async function resolveStudentNeed(userId: string): Promise<StudentNeed | 
     .maybeSingle();
   if (!data) return null;
   const need: StudentNeed = {
-    service_id: data.service_id,
+    service_ids:
+      data.service_ids && data.service_ids.length > 0
+        ? data.service_ids
+        : data.service_id
+          ? [data.service_id]
+          : [],
     level_id: data.level_id,
     city_id: data.city_id,
     mode: data.mode,
@@ -136,7 +150,8 @@ export async function sendNeedToProfessional(
     professionalId: pro.id,
     categoryId: pro.category_id,
     clientId: userId,
-    service_id: need.service_id,
+    service_id: need.service_ids[0] ?? null,
+    service_ids: need.service_ids,
     level_id: need.level_id,
     city_id: need.city_id,
     mode: need.mode,
