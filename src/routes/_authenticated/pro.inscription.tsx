@@ -530,6 +530,7 @@ function ProOnboarding() {
         toast.error(error.message);
         return;
       }
+      await announceMatchingRequests(id);
       toast.success("Votre profil est actif. Vous pourrez envoyer vos documents plus tard.");
       await qc.invalidateQueries();
       navigate({ to: "/pro" });
@@ -570,6 +571,7 @@ function ProOnboarding() {
         toast.error(error.message);
         return;
       }
+      await announceMatchingRequests(pro.id);
       toast.success("✅ Votre dossier a été envoyé à l'administration pour vérification.");
       await qc.invalidateQueries();
       navigate({ to: "/pro" });
