@@ -995,6 +995,7 @@ export type Database = {
           description: string | null
           expires_at: string
           id: string
+          is_demo: boolean
           lat: number | null
           level_id: string | null
           lng: number | null
@@ -1016,6 +1017,7 @@ export type Database = {
           description?: string | null
           expires_at?: string
           id?: string
+          is_demo?: boolean
           lat?: number | null
           level_id?: string | null
           lng?: number | null
@@ -1037,6 +1039,7 @@ export type Database = {
           description?: string | null
           expires_at?: string
           id?: string
+          is_demo?: boolean
           lat?: number | null
           level_id?: string | null
           lng?: number | null

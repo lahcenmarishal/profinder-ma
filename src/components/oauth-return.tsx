@@ -25,10 +25,15 @@ export function OAuthReturnHandler() {
     // Ne s'active qu'au retour du fournisseur : marqueur de connexion en cours,
     // ou jetons/code renvoyés dans l'URL (cas d'un retour sur un autre domaine).
     const url = window.location.search + window.location.hash;
+    const path = window.location.pathname.replace(/\/+$/, "");
+    // Réinitialisation du mot de passe : le lien reçu par email ouvre une
+    // session, mais l'utilisateur doit rester sur la page pour choisir son
+    // nouveau mot de passe — aucune redirection automatique ici.
+    if (path === "/nouveau-mot-de-passe" || /(?:[?&#])type=recovery/.test(url)) return;
     const hasProviderResponse = /(?:[?&#])(code|access_token|error)=/.test(url);
     // Page de connexion : si une session existe déjà (retour Google déjà traité
     // par la librairie d'authentification), on route quand même l'utilisateur.
-    const onAuthPage = window.location.pathname.replace(/\/+$/, "") === "/auth";
+    const onAuthPage = path === "/auth";
     if (!hasProviderResponse && !onAuthPage && !expectedOAuthRole()) return;
     // Le rôle peut avoir été perdu (retour sur un autre domaine ou onglet) :
     // on continue quand même, l'écran de choix du parcours servira de garde-fou.

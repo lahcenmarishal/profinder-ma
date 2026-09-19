@@ -25,3 +25,12 @@ export const notifyProposal = createServerFn({ method: "POST" })
     const { performNotifyProposal } = await import("@/lib/notify.server");
     return performNotifyProposal(data);
   });
+
+/** Signale à un professeur qui vient d'activer son profil les demandes déjà publiées qui lui correspondent. */
+export const notifyProMatches = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ professionalId: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { performNotifyProMatches } = await import("@/lib/notify.server");
+    return performNotifyProMatches(data.professionalId);
+  });

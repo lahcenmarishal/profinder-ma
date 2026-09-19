@@ -28,6 +28,21 @@ import {
   completionOf,
 } from "@/lib/teacher-onboarding";
 
+/**
+ * Dès que le profil devient actif, le professeur est prévenu (notification et
+ * email) des demandes déjà publiées qui correspondent à son profil.
+ */
+async function announceMatchingRequests(professionalId: string) {
+  try {
+    const { notifyProMatches } = await import("@/lib/notify.functions");
+    await notifyProMatches({ data: { professionalId } });
+  } catch (error) {
+    console.error("[notify] demandes correspondantes:", error);
+  }
+}
+
+
+
 export const Route = createFileRoute("/_authenticated/pro/inscription")({
   head: () => ({
     meta: [
@@ -530,6 +545,7 @@ function ProOnboarding() {
         toast.error(error.message);
         return;
       }
+      await announceMatchingRequests(id);
       toast.success("Votre profil est actif. Vous pourrez envoyer vos documents plus tard.");
       await qc.invalidateQueries();
       navigate({ to: "/pro" });
@@ -570,6 +586,7 @@ function ProOnboarding() {
         toast.error(error.message);
         return;
       }
+      await announceMatchingRequests(pro.id);
       toast.success("✅ Votre dossier a été envoyé à l'administration pour vérification.");
       await qc.invalidateQueries();
       navigate({ to: "/pro" });
