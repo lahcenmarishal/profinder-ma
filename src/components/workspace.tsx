@@ -21,14 +21,14 @@ export function WorkspaceHero({
   actions?: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+    <section className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-sm sm:rounded-3xl sm:p-6">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+        <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight">{title}</h1>
+          <h1 className="mt-2 break-words text-3xl font-extrabold tracking-tight">{title}</h1>
           {subtitle && <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>}
         </div>
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+        {actions && <div className="grid min-w-0 gap-2 sm:flex sm:flex-wrap">{actions}</div>}
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(({ label, value, hint, Icon }) => (
