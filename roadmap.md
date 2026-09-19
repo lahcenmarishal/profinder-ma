@@ -43,6 +43,8 @@
 - [x] Relais étendu aux autres emails ProFinder : bienvenue (une seule fois après
       confirmation), notifications (nouvelle demande, proposition reçue) et
       réinitialisation du mot de passe
+- [x] Corriger les débordements sur téléphone dans l'espace élève et les étapes
+      de création du profil professeur
 - [ ] Il manque encore de vrais professeurs en base : les pages ville/matière/niveau
       restent en `noindex` tant qu'aucune fiche complète n'existe
 - [ ] Avertissements sécurité préexistants : fonctions SECURITY DEFINER exécutables publiquement
