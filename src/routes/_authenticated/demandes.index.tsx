@@ -92,8 +92,15 @@ function MyRequests() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="font-bold">
-                      {ref.data?.services.find((s) => s.id === r.service_id)?.name ??
-                        "Toutes matières"}{" "}
+                      {((r.service_ids ?? []).length > 0
+                        ? (r.service_ids ?? [])
+                        : r.service_id
+                          ? [r.service_id]
+                          : []
+                      )
+                        .map((id) => ref.data?.services.find((s) => s.id === id)?.name)
+                        .filter(Boolean)
+                        .join(", ") || "Toutes matières"}{" "}
                       ·{" "}
                       {ref.data?.levels.find((l) => l.id === r.level_id)?.name ?? "Tous niveaux"}
                     </h2>
