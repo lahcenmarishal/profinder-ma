@@ -240,7 +240,9 @@ function ClientSpace() {
               <div className="mb-5 rounded-2xl border border-border bg-muted/40 p-4 text-sm">
                 <p className="font-semibold">Récapitulatif de votre besoin</p>
                 <p className="text-muted-foreground">
-                  {ref.data?.services.find((s) => s.id === need.service_id)?.name ?? "Toutes matières"} ·{" "}
+                  {ref.data?.services.find((s) => s.id === need.service_ids[0])?.name ??
+                    "Toutes matières"}{" "}
+                  ·{" "}
                   {ref.data?.levels.find((l) => l.id === need.level_id)?.name ?? "—"} ·{" "}
                   {ref.data?.cities.find((c) => c.id === need.city_id)?.name ?? "—"} ·{" "}
                   {MODE_LABELS[need.mode]}
