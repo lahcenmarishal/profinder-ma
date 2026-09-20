@@ -14,12 +14,13 @@ export async function performNotifyNewRequest(requestId: string): Promise<{ noti
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const link = `/pro/demandes?r=${requestId}`;
+  // Les professeurs déjà prévenus pour cette demande sont ignorés : un nouveau
+  // professeur correspondant peut ainsi être notifié plus tard sans doublon.
   const { data: existing } = await supabaseAdmin
     .from("notifications")
-    .select("id")
-    .eq("link", link)
-    .limit(1);
-  if (existing && existing.length > 0) return { notified: 0 };
+    .select("user_id")
+    .eq("link", link);
+  const alreadyNotified = new Set((existing ?? []).map((n) => n.user_id));
 
   const { data: request } = await supabaseAdmin
     .from("requests")
