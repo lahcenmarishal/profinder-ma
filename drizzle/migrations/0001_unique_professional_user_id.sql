@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS professionals_user_id_key ON public.professionals (user_id) WHERE user_id IS NOT NULL;
