@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ClipboardList, Eye, Send, Sparkles } from "lucide-react";
 import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
@@ -65,6 +65,23 @@ function ProSpace() {
       return data;
     },
   });
+
+  // Alerte email des demandes déjà publiées qui correspondent au professeur
+  // (une seule fois par session ; les doublons sont filtrés côté serveur).
+  const announced = useRef<string | null>(null);
+  useEffect(() => {
+    const proId = me.data?.id;
+    if (!proId || me.data?.status !== "active" || announced.current === proId) return;
+    announced.current = proId;
+    void (async () => {
+      try {
+        const { notifyProMatches } = await import("@/lib/notify.functions");
+        await notifyProMatches({ data: { professionalId: proId } });
+      } catch (error) {
+        console.error("[notify] demandes compatibles:", error);
+      }
+    })();
+  }, [me.data?.id, me.data?.status]);
 
   const availability = useQuery({
     queryKey: ["my-availability", me.data?.id],
