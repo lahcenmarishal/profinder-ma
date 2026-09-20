@@ -15,6 +15,13 @@
       "when": 1789864958653,
       "tag": "0001_unique_professional_user_id",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789864968733,
+      "tag": "0002_unique_professional_user_id_full",
+      "breakpoints": true
     }
   ]
 }
