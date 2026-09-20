@@ -100,7 +100,7 @@ function ClientSpace() {
 
   const publishSearch = need
     ? {
-        service: need.service_id || undefined,
+        service: need.service_ids[0] || undefined,
         level: need.level_id || undefined,
         city: need.city_id || undefined,
         mode: need.mode,
