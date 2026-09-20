@@ -150,3 +150,87 @@ export async function performNotifyProposal(data: {
 
   return { notified: 1 };
 }
+
+/**
+ * Prévient un professeur des demandes déjà publiées qui correspondent à son
+ * profil (matières + ville), sans doublon avec les notifications existantes.
+ */
+export async function performNotifyProMatches(
+  professionalId: string,
+): Promise<{ notified: number }> {
+  const { relay } = await import("@/lib/email/relay.server");
+  const relayed = await relay<{ notified: number }>("notify_pro_matches", { professionalId });
+  if (relayed) return relayed;
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: pro } = await supabaseAdmin
+    .from("professionals")
+    .select("id, user_id, city_id, status, professional_services(service_id)")
+    .eq("id", professionalId)
+    .maybeSingle();
+  if (!pro?.user_id || pro.status !== "active") return { notified: 0 };
+
+  const userId = pro.user_id;
+  const proServices = (pro.professional_services ?? []).map((s) => s.service_id);
+
+  const { data: requests } = await supabaseAdmin
+    .from("requests")
+    .select("id, service_id, service_ids, city_id, mode, target_professional_id")
+    .in("status", ["active", "proposals_received"])
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  const matching = (requests ?? []).filter((r) => {
+    if (r.target_professional_id && r.target_professional_id !== pro.id) return false;
+    const wanted =
+      r.service_ids && r.service_ids.length > 0 ? r.service_ids : r.service_id ? [r.service_id] : [];
+    if (wanted.length > 0 && proServices.length > 0 && !wanted.some((id) => proServices.includes(id)))
+      return false;
+    if (r.mode !== "online" && r.city_id && pro.city_id !== r.city_id) return false;
+    return true;
+  });
+  if (matching.length === 0) return { notified: 0 };
+
+  const links = matching.map((r) => `/pro/demandes?r=${r.id}`);
+  const { data: existing } = await supabaseAdmin
+    .from("notifications")
+    .select("link")
+    .eq("user_id", userId)
+    .in("link", links);
+  const seen = new Set((existing ?? []).map((n) => n.link));
+
+  const fresh = matching.filter((r) => !seen.has(`/pro/demandes?r=${r.id}`)).slice(0, 10);
+  if (fresh.length === 0) return { notified: 0 };
+
+  await supabaseAdmin.from("notifications").insert(
+    fresh.map((r) => ({
+      user_id: userId,
+      type: "request_match",
+      title: "Nouvelle demande pour vous",
+      body: "Un élève recherche un professeur correspondant à votre profil.",
+      link: `/pro/demandes?r=${r.id}`,
+    })),
+  );
+
+  const { sendEmail, siteUrl, userEmail } = await import("@/lib/email/resend.server");
+  const { newRequestEmail } = await import("@/lib/email/templates.server");
+  const to = await userEmail(userId);
+  if (to) {
+    for (const r of fresh) {
+      const mail = newRequestEmail({
+        siteUrl: siteUrl(),
+        link: `/pro/demandes?r=${r.id}`,
+        targeted: r.target_professional_id === pro.id,
+      });
+      await sendEmail({
+        to,
+        subject: mail.subject,
+        html: mail.html,
+        dedupe: { template: "new_request", ref: `${r.id}:${userId}` },
+      });
+    }
+  }
+
+  return { notified: fresh.length };
+}
