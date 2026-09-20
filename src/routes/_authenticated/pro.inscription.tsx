@@ -202,14 +202,13 @@ function ProOnboarding() {
       ...(nextStep ? { onboarding_step: nextStep } : {}),
       ...patch,
     };
-    const { data, error } = pro
-      ? await supabase
-          .from("professionals")
-          .update(payload)
-          .eq("id", pro.id)
-          .select("id")
-          .maybeSingle()
-      : await supabase.from("professionals").insert(payload).select("id").maybeSingle();
+        // Upsert sur user_id : évite le doublon si la fiche existe déjà mais n'est
+    // pas encore chargée (première sauvegarde rapide, cache périmé, etc.).
+    const { data, error } = await supabase
+      .from("professionals")
+      .upsert(payload, { onConflict: "user_id" })
+      .select("id")
+      .maybeSingle();
     if (error || !data) {
       toast.error(error?.message ?? "Enregistrement impossible.");
       return null;
