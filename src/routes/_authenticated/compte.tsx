@@ -77,7 +77,7 @@ function ClientSpace() {
     setPublishing(true);
     try {
       const id = await publishRequest(user.id, {
-        service_id: need.service_id,
+        service_ids: need.service_ids,
         level_id: need.level_id,
         city_id: need.city_id,
         mode: need.mode,
