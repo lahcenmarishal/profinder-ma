@@ -93,18 +93,6 @@ function ProOnboarding() {
     },
   });
 
-  const documents = useQuery({
-    queryKey: ["my-documents", pro?.id],
-    enabled: !!pro?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("verification_documents")
-        .select("*")
-        .eq("professional_id", pro!.id)
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
 
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
