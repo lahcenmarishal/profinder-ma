@@ -385,7 +385,7 @@ function Home() {
               </h2>
               <p className="mt-5 text-lg text-secondary-foreground/70">
                 Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés bénéficient d'un an de PRO
-                offerts : aucune carte bancaire requise, aucune obligation de paiement pendant la
+                offert : aucune carte bancaire requise, aucune obligation de paiement pendant la
                 période gratuite.
               </p>
               <ul className="mx-auto mt-10 grid max-w-xl gap-3 text-left text-base text-secondary-foreground/80 sm:grid-cols-2">

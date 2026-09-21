@@ -62,10 +62,10 @@ function BecomeTeacherPage() {
           </p>
           <h1 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-4xl">
             Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés bénéficient de{" "}
-            {LAUNCH_OFFER_MONTHS} mois de PRO gratuitement.
+            {LAUNCH_OFFER_MONTHS} mois (1 an) de PRO gratuitement.
           </h1>
           <ul className="mx-auto mt-6 grid max-w-xl gap-2 text-left text-sm text-muted-foreground sm:grid-cols-2">
-            <li>✓ {LAUNCH_OFFER_MONTHS} mois de PRO gratuits</li>
+            <li>✓ {LAUNCH_OFFER_MONTHS} mois de PRO gratuits (1 an)</li>
             <li>✓ Aucune carte bancaire requise</li>
             <li>✓ Aucune obligation de paiement pendant la période gratuite</li>
             <li>✓ Offre limitée aux {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés</li>
