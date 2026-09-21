@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
@@ -20,9 +20,6 @@ import {
 import { SUPERIOR_BRANCHES, branchOfSpecialty } from "@/lib/branches";
 
 import {
-  ALLOWED_DOC_EXTENSIONS,
-  DOCUMENT_KINDS,
-  MAX_DOC_SIZE_MB,
   MAX_PHOTO_SIZE_MB,
   ONBOARDING_STEPS,
   completionOf,
@@ -35,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/pro/inscription")({
       {
         name: "description",
         content:
-          "Complétez votre profil professeur ProFinder : informations, matières, niveaux, tarifs, disponibilités, qualifications et documents de vérification.",
+          "Complétez votre profil professeur ProFinder : informations, matières, niveaux, tarifs, disponibilités et qualifications.",
       },
       { property: "og:title", content: "Inscription professeur — ProFinder" },
       {
@@ -114,9 +111,6 @@ function ProOnboarding() {
     diplomas: "",
     specialty: "",
   });
-  const [docKind, setDocKind] = useState<string>(DOCUMENT_KINDS[0].value);
-  const [noDocNotice, setNoDocNotice] = useState(false);
-  const docInputRef = useRef<HTMLInputElement>(null);
 
   // Reprise automatique : on charge les données déjà enregistrées.
   useEffect(() => {
@@ -170,7 +164,7 @@ function ProOnboarding() {
     serviceCount: form.services.length,
     levelCount: form.levels.length,
     slotCount: availability.data?.length ?? 0,
-    documentCount: documents.data?.length ?? 0,
+    documentCount: 0,
   });
 
   /** Enregistre le profil (création si nécessaire) et renvoie son identifiant. */
