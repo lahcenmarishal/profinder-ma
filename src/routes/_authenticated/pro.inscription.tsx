@@ -1112,68 +1112,15 @@ function ProOnboarding() {
           {step === 5 && (
             <div className="mt-4 space-y-4">
               <h3 className="text-base font-bold">Vérifiez votre profil professionnel</h3>
-              <p className="text-sm text-muted-foreground">
-                Envoyez votre pièce d'identité et votre diplôme (PDF ou image, {MAX_DOC_SIZE_MB} Mo
-                maximum). Vos documents restent privés : seuls vous et les administrateurs habilités
-                y ont accès.
-              </p>
               <p className="rounded-xl bg-muted px-4 py-3 text-sm">
-                Un seul document suffit : pièce d'identité <strong>ou</strong> diplôme (les deux sont
-                également acceptés). La vérification est optionnelle — votre profil reste actif sans
-                elle, simplement sans le badge « Professeur vérifié ✓ ».
+                Aucun document n'est demandé pour le moment : notre équipe vérifie directement les
+                informations de votre profil. Vous pouvez envoyer votre dossier dès maintenant.
               </p>
-              <div className="grid min-w-0 gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-                <select
-                  value={docKind}
-                  onChange={(e) => setDocKind(e.target.value)}
-                  className="min-w-0 max-w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm"
-                >
-                  {DOCUMENT_KINDS.map((k) => (
-                    <option key={k.value} value={k.value}>
-                      {k.label}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  ref={docInputRef}
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.webp"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) void uploadDocument(file);
-                    e.target.value = "";
-                  }}
-                  className="min-w-0 max-w-full text-sm"
-                />
-              </div>
-
-              <ul className="space-y-2 text-sm">
-                {(documents.data ?? []).map((d) => (
-                  <li
-                    key={d.id}
-                    className="flex items-center justify-between rounded-xl bg-muted px-4 py-2"
-                  >
-                    <span>
-                      {DOCUMENT_KINDS.find((k) => k.value === d.kind)?.label ?? d.kind} ·{" "}
-                      <span className="text-xs text-muted-foreground">{d.status}</span>
-                    </span>
-                    <button
-                      onClick={() => removeDocument(d.id, d.file_path)}
-                      className="text-xs font-semibold text-destructive"
-                    >
-                      Retirer
-                    </button>
-                  </li>
-                ))}
-                {(documents.data ?? []).length === 0 && (
-                  <li className="text-muted-foreground">Aucun document envoyé.</li>
-                )}
-              </ul>
 
               {pro?.verification_status === "pending" ? (
                 <p className="rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground">
                   🕐 Vérification en cours — votre dossier a été envoyé. Notre équipe va vérifier les
-                  informations et documents fournis.
+                  informations fournies.
                 </p>
               ) : (
                 <>
@@ -1184,33 +1131,18 @@ function ProOnboarding() {
                   >
                     Envoyer mon dossier
                   </button>
-                  {noDocNotice && (
-                    <div className="rounded-xl border border-border bg-muted px-4 py-4 text-sm">
-                      <p>
-                        Fournissez au moins l'un des deux documents (pièce d'identité ou diplôme)
-                        pour faire vérifier votre compte et bénéficier de l'offre.
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          onClick={() => docInputRef.current?.click()}
-                          className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
-                        >
-                          Fournir un document
-                        </button>
-                        <button
-                          onClick={() => void skipVerification()}
-                          disabled={busy}
-                          className="rounded-xl border border-border px-4 py-2 text-xs font-bold disabled:opacity-60"
-                        >
-                          Continuer sans vérification
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => void skipVerification()}
+                    disabled={busy}
+                    className="w-full rounded-xl border border-border py-3 text-sm font-bold disabled:opacity-60"
+                  >
+                    Continuer sans vérification
+                  </button>
                 </>
               )}
             </div>
           )}
+
 
           <div className="mt-8 grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
             <button
