@@ -469,45 +469,6 @@ function ProOnboarding() {
     toast.success("Photo ajoutée.");
   };
 
-  const uploadDocument = async (file: File) => {
-    if (!user) return;
-    const id = pro?.id ?? (await persist({}));
-    if (!id) return;
-    if (file.size > MAX_DOC_SIZE_MB * 1024 * 1024) {
-      toast.error(`Document trop lourd (max ${MAX_DOC_SIZE_MB} Mo).`);
-      return;
-    }
-    const ext = (file.name.split(".").pop() ?? "").toLowerCase();
-    if (!ALLOWED_DOC_EXTENSIONS.includes(ext)) {
-      toast.error(`Formats acceptés : ${ALLOWED_DOC_EXTENSIONS.join(", ").toUpperCase()}.`);
-      return;
-    }
-    const path = `${user.id}/${id}/${docKind}-${Date.now()}.${ext}`;
-    const up = await supabase.storage.from("verification-docs").upload(path, file);
-    if (up.error) {
-      toast.error(up.error.message);
-      return;
-    }
-    const { error } = await supabase.from("verification_documents").insert({
-      professional_id: id,
-      kind: docKind,
-      file_path: path,
-      status: "pending",
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Document envoyé.");
-    qc.invalidateQueries({ queryKey: ["my-documents", id] });
-  };
-
-  const removeDocument = async (docId: string, path: string) => {
-    await supabase.storage.from("verification-docs").remove([path]);
-    await supabase.from("verification_documents").delete().eq("id", docId);
-    qc.invalidateQueries({ queryKey: ["my-documents", pro?.id] });
-  };
-
   /** Finalise l'inscription sans vérification : le compte reste actif, sans badge. */
   const skipVerification = async () => {
     setBusy(true);
@@ -529,7 +490,7 @@ function ProOnboarding() {
         toast.error(error.message);
         return;
       }
-      toast.success("Votre profil est actif. Vous pourrez envoyer vos documents plus tard.");
+      toast.success("Votre profil est actif. Vous pourrez demander la vérification plus tard.");
       await qc.invalidateQueries();
       navigate({ to: "/pro" });
     } finally {
@@ -539,11 +500,7 @@ function ProOnboarding() {
 
   const submitDossier = async () => {
     if (!pro) return;
-    if ((documents.data?.length ?? 0) === 0) {
-      setNoDocNotice(true);
-      return;
-    }
-    setNoDocNotice(false);
+
     setBusy(true);
     try {
       const { error: reqError } = await supabase
