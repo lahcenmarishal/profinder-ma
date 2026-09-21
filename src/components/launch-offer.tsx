@@ -41,7 +41,7 @@ export function LaunchOfferCard({
         <p className="flex items-center gap-2 text-lg font-extrabold text-primary">
           <Sparkles className="size-5" aria-hidden /> ⭐ PRO — Offre de lancement
         </p>
-        <p className="mt-1 text-sm font-semibold">3 mois gratuits</p>
+        <p className="mt-1 text-sm font-semibold">1 an gratuit</p>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <span className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
             <CalendarClock className="size-4" aria-hidden />
@@ -58,7 +58,7 @@ export function LaunchOfferCard({
           <li>✓ Statistiques détaillées</li>
         </ul>
         <p className="mt-4 text-xs text-muted-foreground">
-          Aucune carte bancaire, aucun prélèvement. À la fin des 3 mois, votre compte revient
+          Aucune carte bancaire, aucun prélèvement. À la fin de l'année offerte, votre compte revient
           automatiquement au plan Gratuit — votre profil est conservé.
         </p>
       </section>
@@ -98,16 +98,16 @@ export function LaunchOfferCard({
   return (
     <section className="mt-6 rounded-3xl border-2 border-dashed border-primary/50 bg-card p-6">
       <p className="flex items-center gap-2 text-lg font-extrabold text-primary">
-        <Sparkles className="size-5" aria-hidden /> 🎁 3 mois de ProFinder Pro gratuits
+        <Sparkles className="size-5" aria-hidden /> 🎁 1 an de ProFinder Pro gratuit
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
-        Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés profitent de 3 mois de PRO
+        Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés profitent de 1 an de PRO
         gratuitement.
       </p>
       <p className="mt-3 flex items-start gap-2 rounded-xl bg-muted px-4 py-3 text-sm">
         <IdCard className="mt-0.5 size-4 shrink-0" aria-hidden />
         {pending
-          ? "✅ Document reçu. Vous pourrez bénéficier des 3 mois Pro gratuits dès que votre compte sera vérifié par l'administration."
+          ? "✅ Document reçu. Vous pourrez bénéficier de l'année Pro gratuite dès que votre compte sera vérifié par l'administration."
           : "Fournissez un document d'identité pour faire vérifier votre compte et bénéficier de l'offre."}
       </p>
       {!pending && (
@@ -133,7 +133,7 @@ export function LaunchOfferAdminCounter() {
         Offre lancement : {used} / {LAUNCH_OFFER_SEATS} professeurs utilisés
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        3 mois de PRO offerts automatiquement aux {LAUNCH_OFFER_SEATS} premiers professeurs
+        1 an de PRO offert automatiquement aux {LAUNCH_OFFER_SEATS} premiers professeurs
         vérifiés. Au-delà, plus aucune attribution automatique.
       </p>
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -170,7 +170,7 @@ export function LaunchWelcomeBanner({
       </p>
       <p className="mt-2 text-sm">
         Vous faites partie des {LAUNCH_OFFER_SEATS} premiers professeurs inscrits sur ProFinder.
-        Après la vérification de votre compte, vous bénéficierez de 3 mois de plan PRO offerts.
+        Après la vérification de votre compte, vous bénéficierez de 1 an de plan PRO offert.
       </p>
       <p className="mt-2 text-sm text-muted-foreground">
         {verificationStatus === "pending"
