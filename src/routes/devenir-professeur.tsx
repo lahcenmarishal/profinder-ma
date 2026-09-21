@@ -10,7 +10,7 @@ export const Route = createFileRoute("/devenir-professeur")({
       {
         name: "description",
         content:
-          "Rejoignez ProFinder : les 300 premiers professeurs vérifiés bénéficient de 1 an de PRO gratuit, sans carte bancaire ni engagement.",
+          "Rejoignez ProFinder : les 300 premiers professeurs vérifiés bénéficient d'un an de PRO gratuit, sans carte bancaire ni engagement.",
       },
       { property: "og:title", content: "Devenir professeur sur ProFinder" },
       {

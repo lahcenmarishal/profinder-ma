@@ -381,10 +381,10 @@ function Home() {
                 🎁 Offre de lancement
               </p>
               <h2 className="mt-6 text-3xl font-bold md:text-4xl">
-                Vous êtes professeur ? Profitez de 1 an de PRO gratuit
+                Vous êtes professeur ? Profitez d'un an de PRO gratuit
               </h2>
               <p className="mt-5 text-lg text-secondary-foreground/70">
-                Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés bénéficient de 1 an de PRO
+                Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés bénéficient d'un an de PRO
                 offerts : aucune carte bancaire requise, aucune obligation de paiement pendant la
                 période gratuite.
               </p>

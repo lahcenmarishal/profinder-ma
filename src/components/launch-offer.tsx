@@ -101,7 +101,7 @@ export function LaunchOfferCard({
         <Sparkles className="size-5" aria-hidden /> 🎁 1 an de ProFinder Pro gratuit
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
-        Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés profitent de 1 an de PRO
+        Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés profitent d'un an de PRO
         gratuitement.
       </p>
       <p className="mt-3 flex items-start gap-2 rounded-xl bg-muted px-4 py-3 text-sm">
@@ -170,7 +170,7 @@ export function LaunchWelcomeBanner({
       </p>
       <p className="mt-2 text-sm">
         Vous faites partie des {LAUNCH_OFFER_SEATS} premiers professeurs inscrits sur ProFinder.
-        Après la vérification de votre compte, vous bénéficierez de 1 an de plan PRO offert.
+        Après la vérification de votre compte, vous bénéficierez d'un an de plan PRO offert.
       </p>
       <p className="mt-2 text-sm text-muted-foreground">
         {verificationStatus === "pending"

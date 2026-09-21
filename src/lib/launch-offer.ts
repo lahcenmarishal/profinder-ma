@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const LAUNCH_OFFER_SEATS = 300;
 
 /** Durée de l'offre offerte aux professeurs vérifiés. */
-export const LAUNCH_OFFER_MONTHS = 3;
+export const LAUNCH_OFFER_MONTHS = 12;
 
 export const LAUNCH_OFFER_TAGLINE =
-  "Les 300 premiers professeurs vérifiés profitent de 1 an de PRO gratuitement.";
+  "Les 300 premiers professeurs vérifiés profitent d'un an de PRO gratuitement.";
 
 export type LaunchGrant = {
   seat_number: number;
