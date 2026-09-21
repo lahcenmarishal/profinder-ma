@@ -176,7 +176,9 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
                   </button>
                 ))}
                 {(p.verification_documents ?? []).length === 0 && (
-                  <span className="text-xs text-muted-foreground">Aucun document fourni.</span>
+                  <span className="text-xs text-muted-foreground">
+                    Documents non requis actuellement — vérification sur informations du profil.
+                  </span>
                 )}
               </div>
 
