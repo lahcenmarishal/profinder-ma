@@ -3,7 +3,7 @@ import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 
 /**
  * Tâche planifiée : repasse au plan Gratuit les professeurs dont
- * l'offre de lancement (3 mois de PRO) est arrivée à échéance.
+ * l'offre de lancement (1 an de PRO) est arrivée à échéance.
  */
 export const Route = createFileRoute("/api/public/cron/expire-launch-offers")({
   server: {

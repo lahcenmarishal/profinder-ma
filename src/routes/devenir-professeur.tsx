@@ -6,17 +6,17 @@ import { LAUNCH_OFFER_MONTHS, LAUNCH_OFFER_SEATS } from "@/lib/launch-offer";
 export const Route = createFileRoute("/devenir-professeur")({
   head: () => ({
     meta: [
-      { title: "Devenir professeur — 3 mois de PRO offerts | ProFinder" },
+      { title: "Devenir professeur — 1 an de PRO offert | ProFinder" },
       {
         name: "description",
         content:
-          "Rejoignez ProFinder : les 300 premiers professeurs vérifiés bénéficient de 3 mois de PRO gratuits, sans carte bancaire ni engagement.",
+          "Rejoignez ProFinder : les 300 premiers professeurs vérifiés bénéficient d'un an de PRO gratuit, sans carte bancaire ni engagement.",
       },
       { property: "og:title", content: "Devenir professeur sur ProFinder" },
       {
         property: "og:description",
         content:
-          "3 mois de PRO offerts aux 300 premiers professeurs vérifiés. Créez votre profil gratuitement.",
+          "1 an de PRO offert aux 300 premiers professeurs vérifiés. Créez votre profil gratuitement.",
       },
       { property: "og:image", content: "https://profinder.ma/og-default.jpg" },
       { property: "og:image:alt", content: "ProFinder — cours particuliers au Maroc" },
@@ -62,10 +62,10 @@ function BecomeTeacherPage() {
           </p>
           <h1 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-4xl">
             Les {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés bénéficient de{" "}
-            {LAUNCH_OFFER_MONTHS} mois de PRO gratuitement.
+            {LAUNCH_OFFER_MONTHS} mois (1 an) de PRO gratuitement.
           </h1>
           <ul className="mx-auto mt-6 grid max-w-xl gap-2 text-left text-sm text-muted-foreground sm:grid-cols-2">
-            <li>✓ {LAUNCH_OFFER_MONTHS} mois de PRO gratuits</li>
+            <li>✓ {LAUNCH_OFFER_MONTHS} mois de PRO gratuits (1 an)</li>
             <li>✓ Aucune carte bancaire requise</li>
             <li>✓ Aucune obligation de paiement pendant la période gratuite</li>
             <li>✓ Offre limitée aux {LAUNCH_OFFER_SEATS} premiers professeurs vérifiés</li>
@@ -92,7 +92,7 @@ function BecomeTeacherPage() {
         </section>
 
         <section className="mt-14">
-          <h2 className="text-2xl font-bold tracking-tight">Et après les 3 mois gratuits ?</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Et après l'année gratuite ?</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Aucun prélèvement automatique : à la fin de la période offerte, votre compte revient
             simplement au plan Gratuit. Vous conservez votre profil, vos avis et vos échanges, et
