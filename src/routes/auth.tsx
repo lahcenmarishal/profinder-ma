@@ -210,7 +210,7 @@ function AuthPage() {
                 ? "Mot de passe invalide : 8 caractères minimum."
                 : result.reason === "send_failed"
                   ? "Compte créé, mais l'email de confirmation n'a pas pu être envoyé. Réessayez dans quelques minutes."
-                  : (result.message ?? "Création du compte impossible. Veuillez réessayer."),
+                  : (result.message?.trim() || "Création du compte impossible. Veuillez réessayer."),
           );
           return;
         }
