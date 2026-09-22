@@ -754,6 +754,19 @@ function ProOnboarding() {
                 />
               </label>
               <label className={`${label} sm:col-span-2`}>
+                Accroche
+                <input
+                  value={form.headline}
+                  onChange={(e) => setForm({ ...form, headline: e.target.value })}
+                  maxLength={120}
+                  placeholder="Ex. Professeure de maths, 8 ans d'expérience, soutien à domicile"
+                  className={input}
+                />
+                <span className="text-xs text-muted-foreground">
+                  Une phrase courte affichée sur votre carte et votre profil.
+                </span>
+              </label>
+              <label className={`${label} sm:col-span-2`}>
                 Présentation personnelle
                 <textarea
                   value={form.bio}

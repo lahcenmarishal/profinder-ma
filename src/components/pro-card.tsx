@@ -150,6 +150,12 @@ export function ProCard({
           />
         )}
 
+        {pro.headline && (
+          <p className="mb-2 line-clamp-2 text-sm font-medium text-foreground/90">
+            {pro.headline}
+          </p>
+        )}
+
         <div className="text-sm">
           <span className="font-semibold text-foreground">Disponibilité : </span>
           <span className="text-muted-foreground">{availability ?? "à convenir"}</span>
