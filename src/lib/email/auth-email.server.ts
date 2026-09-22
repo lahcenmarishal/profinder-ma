@@ -23,10 +23,23 @@ function verifyRedirect(origin: string, role: "client" | "pro"): string {
 
 export { hasServiceRoleKey } from "@/lib/email/relay.server";
 
-export async function performSignup(data: SignupInput): Promise<SignupResult> {
-  const { relay } = await import("@/lib/email/relay.server");
-  const relayed = await relay<SignupResult>("signup", data);
-  if (relayed) return relayed;
+export async function performSignup(
+  data: SignupInput,
+  options?: { noRelay?: boolean },
+): Promise<SignupResult> {
+  const { relay, hasServiceRoleKey: hasKey } = await import("@/lib/email/relay.server");
+  if (!options?.noRelay) {
+    const relayed = await relay<SignupResult>("signup", data);
+    if (relayed) return relayed;
+    // Pas de clé privée ici et relais injoignable : message explicite.
+    if (!hasKey())
+      return {
+        ok: false,
+        reason: "link_failed",
+        message: "Le service d'envoi d'emails est momentanément indisponible. Réessayez dans quelques minutes.",
+      };
+  }
+
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { sendEmail, siteUrl } = await import("@/lib/email/resend.server");
@@ -50,11 +63,20 @@ export async function performSignup(data: SignupInput): Promise<SignupResult> {
   });
 
   if (error || !link?.properties?.action_link) {
-    const message = error?.message ?? "Inscription impossible.";
+    const message = error?.message?.trim() || "Inscription impossible.";
     if (/already|registered|exists/i.test(message)) return { ok: false, reason: "already_registered" };
     if (/password/i.test(message)) return { ok: false, reason: "weak_password", message };
     console.error("[email] génération du lien d'inscription impossible:", message);
-    return { ok: false, reason: "link_failed", message };
+    // Dernier recours : confier l'envoi au déploiement de référence.
+    if (!options?.noRelay) {
+      const fallback = await relay<SignupResult>("signup", data, { force: true });
+      if (fallback) return fallback;
+    }
+    return {
+      ok: false,
+      reason: "link_failed",
+      message: "Création du compte impossible pour le moment. Réessayez dans quelques minutes.",
+    };
   }
 
   const mail = verificationEmail({
