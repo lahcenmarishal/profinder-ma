@@ -20,8 +20,13 @@ function relayOrigin(): string {
  * Renvoie la réponse du déploiement relais, ou `null` si la clé privée est
  * disponible localement (auquel cas l'appelant fait le travail lui-même).
  */
-export async function relay<T>(action: string, payload: unknown): Promise<T | null> {
-  if (hasServiceRoleKey()) return null;
+export async function relay<T>(
+  action: string,
+  payload: unknown,
+  options?: { force?: boolean },
+): Promise<T | null> {
+  if (!options?.force && hasServiceRoleKey()) return null;
+
 
   try {
     const response = await fetch(`${relayOrigin()}/api/public/auth-email`, {
