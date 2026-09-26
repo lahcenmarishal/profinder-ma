@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
+import { AutomaticProPortrait } from "@/components/automatic-pro-portrait";
+import { subjectsOf } from "@/components/pro-card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -188,9 +190,14 @@ function RequestDetail() {
                             className="size-14 shrink-0 rounded-2xl object-cover"
                           />
                         ) : (
-                          <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-muted text-lg font-bold">
-                            {pro.display_name?.charAt(0) ?? "?"}
-                          </div>
+                          <AutomaticProPortrait
+                            name={pro.display_name}
+                            subject={subjectsOf(pro)[0]}
+                            subjects={subjectsOf(pro)}
+                            gender={pro.gender}
+                            className="size-14 shrink-0 rounded-2xl"
+                            compact
+                          />
                         )}
                         <div className="min-w-0 flex-1">
                           <h3 className="truncate text-base font-bold">{pro.display_name}</h3>
