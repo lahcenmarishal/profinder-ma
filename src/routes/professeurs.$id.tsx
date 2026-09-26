@@ -6,6 +6,7 @@ import { VerifiedBadge } from "@/components/verified-badge";
 import { RatingBadge } from "@/components/rating-badge";
 import { RequestProButton } from "@/components/request-pro";
 import { modesOf, subjectsOf } from "@/components/pro-card";
+import { AutomaticProPortrait } from "@/components/automatic-pro-portrait";
 import { supabase } from "@/integrations/supabase/client";
 import { LEVELS, SERVICES } from "@/lib/catalog";
 import { CITIES } from "@/lib/cities";
@@ -139,12 +140,14 @@ function ProProfile() {
                     className="aspect-square w-full rounded-2xl bg-muted object-cover sm:size-32 sm:w-32 sm:shrink-0"
                   />
                 ) : (
-                  <div
-                    aria-hidden="true"
-                    className="flex aspect-square w-full items-center justify-center rounded-2xl bg-muted text-4xl font-extrabold text-muted-foreground/50 sm:size-32 sm:w-32 sm:shrink-0"
-                  >
-                    {p.display_name.trim().charAt(0).toUpperCase()}
-                  </div>
+                  <AutomaticProPortrait
+                    name={p.display_name}
+                    subject={subjectsOf(p)[0]}
+                    subjects={subjectsOf(p)}
+                    gender={p.gender}
+                    className="aspect-square rounded-2xl sm:size-32 sm:w-32 sm:shrink-0"
+                    compact
+                  />
                 )}
 
                 <div className="min-w-0 flex-1">
