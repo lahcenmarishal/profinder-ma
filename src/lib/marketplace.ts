@@ -64,6 +64,7 @@ export type ProfessionalRow = {
   headline: string | null;
   bio: string | null;
   photo_url: string | null;
+  gender: "female" | "male" | null;
   experience_years: number;
   hourly_rate: number;
   city_id: string | null;
