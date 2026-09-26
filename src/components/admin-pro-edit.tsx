@@ -18,6 +18,7 @@ export function AdminProEdit({
   ratingCount,
   serviceIds,
   availability,
+  gender,
 }: {
   id: string;
   photoUrl: string | null;
@@ -25,6 +26,7 @@ export function AdminProEdit({
   ratingCount: number | null;
   serviceIds: string[];
   availability: Slot[];
+  gender: string | null;
 }) {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -42,6 +44,7 @@ export function AdminProEdit({
     photo_url?: string;
     rating_avg?: number;
     rating_count?: number;
+    gender?: "female" | "male" | null;
   }) => {
     const { error } = await supabase.from("professionals").update(patch).eq("id", id);
     if (error) {
@@ -149,6 +152,18 @@ export function AdminProEdit({
           }}
           className="mt-1 block w-56 rounded-lg border border-border bg-muted px-2 py-1 text-xs text-foreground"
         />
+      </label>
+      <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        Portrait sans photo
+        <select
+          value={gender ?? ""}
+          onChange={(e) => void save({ gender: e.target.value === "" ? null : e.target.value as "female" | "male" })}
+          className="mt-1 block w-28 rounded-lg border border-border bg-muted px-2 py-1.5 text-sm text-foreground"
+        >
+          <option value="">Neutre</option>
+          <option value="female">Femme</option>
+          <option value="male">Homme</option>
+        </select>
       </label>
       <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         Note (0–5)
