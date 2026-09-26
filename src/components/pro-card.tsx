@@ -5,6 +5,7 @@ import { useLanguage } from "@/lib/i18n";
 import { VerifiedBadge } from "@/components/verified-badge";
 import { RatingBadge } from "@/components/rating-badge";
 import { RequestProButton } from "@/components/request-pro";
+import { AutomaticProPortrait } from "@/components/automatic-pro-portrait";
 
 export function subjectsOf(pro: ProfessionalRow) {
   const names = pro.professional_services
@@ -97,13 +98,13 @@ export function ProCard({
             className="aspect-[4/3] w-full bg-muted object-cover"
           />
         ) : (
-          /* Aucune photo publiée : espace réservé (même ratio) plutôt qu'une image factice. */
-          <div
-            aria-hidden="true"
-            className="flex aspect-[4/3] w-full items-center justify-center bg-muted text-5xl font-extrabold text-muted-foreground/50"
-          >
-            {pro.display_name.trim().charAt(0).toUpperCase()}
-          </div>
+          <AutomaticProPortrait
+            name={pro.display_name}
+            subject={subjects[0]}
+            subjects={subjects}
+            gender={pro.gender}
+            compact
+          />
         )}
 
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/85 to-transparent p-4 pt-12">
