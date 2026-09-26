@@ -9,6 +9,7 @@ import { OnboardingProgress } from "@/components/onboarding-progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AvailabilityPicker } from "@/components/availability-picker";
+import { AutomaticProPortrait } from "@/components/automatic-pro-portrait";
 import {
   MODE_LABELS,
   cyclesOf,
@@ -103,6 +104,7 @@ function ProOnboarding() {
     bio: "",
     headline: "",
     photo_url: "",
+    gender: "" as "" | "female" | "male",
     levels: [] as string[],
     services: [] as string[],
     modes: ["home", "online"] as string[],
@@ -127,6 +129,7 @@ function ProOnboarding() {
       bio: pro.bio ?? "",
       headline: pro.headline ?? "",
       photo_url: pro.photo_url ?? "",
+      gender: pro.gender === "female" || pro.gender === "male" ? pro.gender : "",
       levels: (pro.professional_levels as { level_id: string }[]).map((l) => l.level_id),
       services: (pro.professional_services as { service_id: string }[]).map((s) => s.service_id),
       modes: [
@@ -360,6 +363,7 @@ function ProOnboarding() {
             bio: form.bio,
             headline: form.headline,
             photo_url: form.photo_url || null,
+            gender: form.gender || null,
           },
           next,
         );
@@ -692,7 +696,12 @@ function ProOnboarding() {
                       className="h-16 w-16 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-full bg-muted" />
+                    <AutomaticProPortrait
+                      name={`${form.first_name} ${form.last_name}`.trim() || "Professeur"}
+                      gender={form.gender || null}
+                      className="size-16 shrink-0 rounded-full"
+                      compact
+                    />
                   )}
                   <input
                     type="file"
@@ -705,6 +714,23 @@ function ProOnboarding() {
                   />
                 </div>
               </div>
+              <fieldset className="sm:col-span-2">
+                <legend className={label}>Apparence du portrait automatique</legend>
+                <p className="mt-1 text-xs text-muted-foreground">Utilisée seulement sans photo.</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {([ ["female", "Femme"], ["male", "Homme"] ] as const).map(([value, text]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={form.gender === value}
+                      onClick={() => setForm({ ...form, gender: value })}
+                      className={form.gender === value
+                        ? "rounded-xl border border-primary bg-primary/10 px-4 py-3 text-sm font-bold text-primary"
+                        : "rounded-xl border border-border bg-muted px-4 py-3 text-sm font-semibold text-muted-foreground"}
+                    >{text}</button>
+                  ))}
+                </div>
+              </fieldset>
               <label className={label}>
                 Prénom
                 <input
