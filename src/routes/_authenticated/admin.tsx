@@ -269,6 +269,7 @@ function Admin() {
                 <AdminProEdit
                   id={p.id}
                   photoUrl={p.photo_url}
+                  gender={p.gender}
                   ratingAvg={p.rating_avg}
                   ratingCount={p.rating_count}
                   serviceIds={(p.professional_services ?? []).map((item) => item.service_id)}
