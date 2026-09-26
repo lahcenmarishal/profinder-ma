@@ -87,6 +87,7 @@ function DemoProForm({
   const [headline, setHeadline] = useState("");
   const [bio, setBio] = useState("");
   const [photo, setPhoto] = useState("");
+  const [gender, setGender] = useState<"female" | "male">("female");
   const [ratingAvg, setRatingAvg] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -160,6 +161,7 @@ function DemoProForm({
         headline: headline.trim() || null,
         bio: bio.trim() || null,
         photo_url: photo.trim() || null,
+        gender,
         rating_avg: ratingCount > 0 ? ratingAvg : 0,
         rating_count: ratingCount,
         languages: ["fr", "ar"],
@@ -235,6 +237,13 @@ function DemoProForm({
         <label className={labelClass}>
           Nom affiché
           <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+        </label>
+        <label className={labelClass}>
+          Apparence sans photo
+          <select value={gender} onChange={(e) => setGender(e.target.value as "female" | "male")} className={inputClass}>
+            <option value="female">Femme</option>
+            <option value="male">Homme</option>
+          </select>
         </label>
         <label className={labelClass}>
           Ville
