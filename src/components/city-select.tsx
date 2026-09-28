@@ -77,16 +77,34 @@ export function CitySelect({
         placeholder={placeholder}
         className={base}
         onChange={(e) => {
-          setQuery(e.target.value);
+          const text = e.target.value;
+          setQuery(text);
           setHighlight(0);
           setOpen(true);
-          if (value) {
+          // Ville saisie en entier (ou remplie automatiquement) : on la
+          // sélectionne sans exiger de clic sur la suggestion.
+          const exact = cities.find((c) => norm(c.name) === norm(text.trim()));
+          if (exact) {
+            if (exact.id !== value) {
+              lastValue.current = exact.id;
+              onChange(exact.id);
+            }
+          } else if (value) {
             lastValue.current = "";
             onChange("");
           }
         }}
         onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onBlur={() => {
+          setTimeout(() => setOpen(false), 150);
+          if (!value) {
+            const q = norm(query.trim());
+            const exact = cities.find((c) => norm(c.name) === q);
+            const only = matches.length === 1 ? matches[0] : undefined;
+            const hit = exact ?? only;
+            if (hit) pick(hit);
+          }
+        }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
