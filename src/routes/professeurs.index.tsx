@@ -36,7 +36,7 @@ export const Route = createFileRoute("/professeurs/")({
     city: str(search["city"]),
     mode: (["home", "studio", "online"] as const).includes(search["mode"] as never)
       ? (search["mode"] as Search["mode"])
-      : "home",
+      : undefined,
     budget: str(search["budget"], "100"),
     address: str(search["address"]),
     lat: str(search["lat"]),
@@ -94,7 +94,8 @@ function Results() {
   const hasCriteria = Boolean(search.service || search.level || search.city);
 
   const matches = (pros.data ?? [])
-    .filter((p) => modeAllowed(p, search.mode))
+    // Sans mode choisi explicitement, on affiche tous les professeurs (y compris en ligne uniquement).
+    .filter((p) => (search.mode ? modeAllowed(p, search.mode) : true))
     // Même ville : la recherche ne dépend plus d'un rayon de déplacement.
     .filter((p) => (search.city ? p.city_id === search.city : true))
     .map((p) => ({ pro: p, ...scoreMatch(p, criteria, ref.data?.weights, planBoostFor(p.plan_code)) }))

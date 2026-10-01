@@ -657,6 +657,7 @@ export type Database = {
           experience_description: string | null
           experience_years: number
           first_name: string | null
+          gender: string | null
           headline: string | null
           hourly_rate: number
           id: string
@@ -704,6 +705,7 @@ export type Database = {
           experience_description?: string | null
           experience_years?: number
           first_name?: string | null
+          gender?: string | null
           headline?: string | null
           hourly_rate?: number
           id?: string
@@ -751,6 +753,7 @@ export type Database = {
           experience_description?: string | null
           experience_years?: number
           first_name?: string | null
+          gender?: string | null
           headline?: string | null
           hourly_rate?: number
           id?: string
