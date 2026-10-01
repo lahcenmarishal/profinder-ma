@@ -58,6 +58,7 @@ import { Route as LangCoursParticuliersVilleIndexRouteImport } from './routes/$l
 import { Route as LangCoursParticuliersVilleMatiereRouteImport } from './routes/$lang.cours-particuliers.$ville.$matiere'
 import { Route as LangProfesseursVilleIndexRouteImport } from './routes/$lang.professeurs.$ville.index'
 import { Route as ApiPublicCronExpireLaunchOffersRouteImport } from './routes/api/public/cron/expire-launch-offers'
+import { Route as ApiPublicCronOnboardingRemindersRouteImport } from './routes/api/public/cron/onboarding-reminders'
 import { Route as LangProfesseursVilleMatiereIndexRouteImport } from './routes/$lang.professeurs.$ville.$matiere.index'
 import { Route as LangProfesseursVilleMatiereNiveauRouteImport } from './routes/$lang.professeurs.$ville.$matiere.$niveau'
 
@@ -313,6 +314,12 @@ const ApiPublicCronExpireLaunchOffersRoute =
     path: '/api/public/cron/expire-launch-offers',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronOnboardingRemindersRoute =
+  ApiPublicCronOnboardingRemindersRouteImport.update({
+    id: '/api/public/cron/onboarding-reminders',
+    path: '/api/public/cron/onboarding-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LangProfesseursVilleMatiereIndexRoute =
   LangProfesseursVilleMatiereIndexRouteImport.update({
     id: '/professeurs/$ville/$matiere/',
@@ -373,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/fr/blog/': typeof FrBlogIndexRoute
   '/$lang/cours-particuliers/$ville/$matiere': typeof LangCoursParticuliersVilleMatiereRoute
   '/api/public/cron/expire-launch-offers': typeof ApiPublicCronExpireLaunchOffersRoute
+  '/api/public/cron/onboarding-reminders': typeof ApiPublicCronOnboardingRemindersRoute
   '/$lang/cours-particuliers/$ville/': typeof LangCoursParticuliersVilleIndexRoute
   '/$lang/professeurs/$ville/': typeof LangProfesseursVilleIndexRoute
   '/$lang/professeurs/$ville/$matiere/$niveau': typeof LangProfesseursVilleMatiereNiveauRoute
@@ -424,6 +432,7 @@ export interface FileRoutesByTo {
   '/fr/blog': typeof FrBlogIndexRoute
   '/$lang/cours-particuliers/$ville/$matiere': typeof LangCoursParticuliersVilleMatiereRoute
   '/api/public/cron/expire-launch-offers': typeof ApiPublicCronExpireLaunchOffersRoute
+  '/api/public/cron/onboarding-reminders': typeof ApiPublicCronOnboardingRemindersRoute
   '/$lang/cours-particuliers/$ville': typeof LangCoursParticuliersVilleIndexRoute
   '/$lang/professeurs/$ville': typeof LangProfesseursVilleIndexRoute
   '/$lang/professeurs/$ville/$matiere/$niveau': typeof LangProfesseursVilleMatiereNiveauRoute
@@ -478,6 +487,7 @@ export interface FileRoutesById {
   '/fr/blog/': typeof FrBlogIndexRoute
   '/$lang/cours-particuliers/$ville/$matiere': typeof LangCoursParticuliersVilleMatiereRoute
   '/api/public/cron/expire-launch-offers': typeof ApiPublicCronExpireLaunchOffersRoute
+  '/api/public/cron/onboarding-reminders': typeof ApiPublicCronOnboardingRemindersRoute
   '/$lang/cours-particuliers/$ville/': typeof LangCoursParticuliersVilleIndexRoute
   '/$lang/professeurs/$ville/': typeof LangProfesseursVilleIndexRoute
   '/$lang/professeurs/$ville/$matiere/$niveau': typeof LangProfesseursVilleMatiereNiveauRoute
@@ -532,6 +542,7 @@ export interface FileRouteTypes {
     | '/fr/blog/'
     | '/$lang/cours-particuliers/$ville/$matiere'
     | '/api/public/cron/expire-launch-offers'
+    | '/api/public/cron/onboarding-reminders'
     | '/$lang/cours-particuliers/$ville/'
     | '/$lang/professeurs/$ville/'
     | '/$lang/professeurs/$ville/$matiere/$niveau'
@@ -583,6 +594,7 @@ export interface FileRouteTypes {
     | '/fr/blog'
     | '/$lang/cours-particuliers/$ville/$matiere'
     | '/api/public/cron/expire-launch-offers'
+    | '/api/public/cron/onboarding-reminders'
     | '/$lang/cours-particuliers/$ville'
     | '/$lang/professeurs/$ville'
     | '/$lang/professeurs/$ville/$matiere/$niveau'
@@ -636,6 +648,7 @@ export interface FileRouteTypes {
     | '/fr/blog/'
     | '/$lang/cours-particuliers/$ville/$matiere'
     | '/api/public/cron/expire-launch-offers'
+    | '/api/public/cron/onboarding-reminders'
     | '/$lang/cours-particuliers/$ville/'
     | '/$lang/professeurs/$ville/'
     | '/$lang/professeurs/$ville/$matiere/$niveau'
@@ -670,6 +683,7 @@ export interface RootRouteChildren {
   ArBlogIndexRoute: typeof ArBlogIndexRoute
   FrBlogIndexRoute: typeof FrBlogIndexRoute
   ApiPublicCronExpireLaunchOffersRoute: typeof ApiPublicCronExpireLaunchOffersRoute
+  ApiPublicCronOnboardingRemindersRoute: typeof ApiPublicCronOnboardingRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1017,6 +1031,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronExpireLaunchOffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/onboarding-reminders': {
+      id: '/api/public/cron/onboarding-reminders'
+      path: '/api/public/cron/onboarding-reminders'
+      fullPath: '/api/public/cron/onboarding-reminders'
+      preLoaderRoute: typeof ApiPublicCronOnboardingRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$lang/professeurs/$ville/$matiere/': {
       id: '/$lang/professeurs/$ville/$matiere/'
       path: '/professeurs/$ville/$matiere'
@@ -1129,6 +1150,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArBlogIndexRoute: ArBlogIndexRoute,
   FrBlogIndexRoute: FrBlogIndexRoute,
   ApiPublicCronExpireLaunchOffersRoute: ApiPublicCronExpireLaunchOffersRoute,
+  ApiPublicCronOnboardingRemindersRoute: ApiPublicCronOnboardingRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
