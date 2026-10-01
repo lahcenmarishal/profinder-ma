@@ -338,21 +338,54 @@ function ProOnboarding() {
     }));
   };
 
+  /** Champs obligatoires manquants, par étape (la photo reste facultative : portrait automatique). */
+  const missingForStep = (s: number): string[] => {
+    const missing: string[] = [];
+    if (s === 1 && !emailVerified) missing.push("confirmation de l'email");
+    if (s === 2) {
+      if (!form.first_name.trim()) missing.push("prénom");
+      if (!form.last_name.trim()) missing.push("nom");
+      if (!form.phone.trim()) missing.push("téléphone");
+      if (!form.city_id) missing.push("ville");
+      if (!form.area.trim()) missing.push("quartier");
+      if (!form.headline.trim()) missing.push("accroche");
+      if (!form.bio.trim()) missing.push("présentation personnelle");
+      if (!form.gender) missing.push("apparence du portrait (Femme/Homme)");
+    }
+    if (s === 3) {
+      if (form.levels.length === 0) missing.push("au moins une classe");
+      if (form.services.length === 0) missing.push("au moins une matière");
+    }
+    if (s === 4) {
+      if (form.modes.length === 0) missing.push("au moins un type de cours");
+      if (Number.isNaN(Number(form.hourly_rate)) || Number(form.hourly_rate) < 0)
+        missing.push("tarif horaire");
+    }
+    if (s === 5) {
+      if (!form.experience_years || Number(form.experience_years) <= 0)
+        missing.push("années d'expérience");
+      if (!form.diplomas.trim()) missing.push("diplômes");
+      if (!form.specialty.trim()) missing.push("spécialité");
+    }
+    return missing;
+  };
+
+  /** Tous les champs de toutes les étapes sont-ils remplis ? */
+  const allMissing = () =>
+    ONBOARDING_STEPS.flatMap((_, i) => missingForStep(i + 1));
+
   const goNext = async () => {
     setBusy(true);
     try {
       const next = Math.min(step + 1, ONBOARDING_STEPS.length);
+      const missing = missingForStep(step);
+      if (missing.length > 0) {
+        toast.error(`Champs obligatoires manquants : ${missing.join(", ")}.`);
+        return;
+      }
       if (step === 1) {
-        if (!emailVerified) {
-          toast.error("Confirmez d'abord votre adresse email.");
-          return;
-        }
         await persist({}, next);
       } else if (step === 2) {
-        if (!form.first_name.trim() || !form.last_name.trim() || !form.phone.trim() || !form.city_id) {
-          toast.error("Prénom, nom, téléphone et ville sont obligatoires.");
-          return;
-        }
         await persist(
           {
             first_name: form.first_name,
@@ -460,6 +493,11 @@ function ProOnboarding() {
 
   /** Finalise l'inscription sans vérification : le compte reste actif, sans badge. */
   const skipVerification = async () => {
+    const missing = allMissing();
+    if (missing.length > 0) {
+      toast.error(`Complétez d'abord tous les champs : ${missing.join(", ")}.`);
+      return;
+    }
     setBusy(true);
     try {
       const id = pro?.id ?? (await persist({}));
@@ -489,6 +527,11 @@ function ProOnboarding() {
 
   const submitDossier = async () => {
     if (!pro) return;
+    const missing = allMissing();
+    if (missing.length > 0) {
+      toast.error(`Complétez d'abord tous les champs : ${missing.join(", ")}.`);
+      return;
+    }
 
     setBusy(true);
     try {
