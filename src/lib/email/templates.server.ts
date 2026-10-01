@@ -102,6 +102,22 @@ export function recoveryEmail(args: { url: string; siteUrl: string }) {
   };
 }
 
+export function onboardingReminderEmail(args: { siteUrl: string; name?: string | null }) {
+  const hello = args.name ? `Bonjour ${escape(args.name)},` : "Bonjour,";
+  return {
+    subject: "Finalisez votre profil et profitez de 12 mois de PRO offerts — ProFinder",
+    html: layout({
+      siteUrl: args.siteUrl,
+      title: "Votre profil professeur vous attend",
+      intro: `${hello} vous avez commencé votre inscription sur ProFinder, mais votre profil n'est pas encore finalisé.`,
+      body:
+        "Terminez-le en quelques minutes pour l'envoyer à la vérification. Une fois votre profil vérifié, vous apparaîtrez dans les recherches des élèves et recevrez des demandes de cours près de chez vous.<br /><br /><strong>Offre de lancement :</strong> les 300 premiers professeurs vérifiés bénéficient d'<strong>1 an (12 mois) de PRO gratuit</strong>. Les places sont limitées.",
+      cta: { label: "Finaliser mon profil", url: `${args.siteUrl}/pro/inscription` },
+      footnote: "Vous recevez cet email car vous avez créé un compte professeur sur ProFinder.",
+    }),
+  };
+}
+
 export function newRequestEmail(args: { siteUrl: string; link: string; targeted: boolean }) {
   return {
     subject: args.targeted ? "Nouvelle demande directe — ProFinder" : "Nouvelle demande de cours pour vous",

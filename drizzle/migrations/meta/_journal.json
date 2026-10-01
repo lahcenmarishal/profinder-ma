@@ -29,6 +29,13 @@
       "when": 1790030520405,
       "tag": "0003_launch_offer_one_year",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790846234117,
+      "tag": "0004_onboarding_reminder_cron",
+      "breakpoints": true
     }
   ]
 }
