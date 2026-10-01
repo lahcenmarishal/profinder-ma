@@ -493,6 +493,11 @@ function ProOnboarding() {
 
   /** Finalise l'inscription sans vérification : le compte reste actif, sans badge. */
   const skipVerification = async () => {
+    const missing = allMissing();
+    if (missing.length > 0) {
+      toast.error(`Complétez d'abord tous les champs : ${missing.join(", ")}.`);
+      return;
+    }
     setBusy(true);
     try {
       const id = pro?.id ?? (await persist({}));
@@ -522,6 +527,11 @@ function ProOnboarding() {
 
   const submitDossier = async () => {
     if (!pro) return;
+    const missing = allMissing();
+    if (missing.length > 0) {
+      toast.error(`Complétez d'abord tous les champs : ${missing.join(", ")}.`);
+      return;
+    }
 
     setBusy(true);
     try {
