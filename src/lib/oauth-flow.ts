@@ -31,6 +31,7 @@ export function consumeOAuthPending(): AccountRole | null {
 }
 
 export type PostAuthTarget =
+  | { kind: "admin" }
   | { kind: "pro" }
   | { kind: "pro-onboarding" }
   | { kind: "request"; id: string; published: boolean }

@@ -78,6 +78,9 @@ export function OAuthReturnHandler() {
         const target = await resolvePostAuthTarget(user.id, role);
         if (cancelled) return;
         switch (target.kind) {
+          case "admin":
+            navigate({ to: "/admin" });
+            break;
           case "pro":
             navigate({ to: "/pro" });
             break;

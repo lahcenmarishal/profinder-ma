@@ -286,7 +286,8 @@ function AuthPage() {
       return;
     }
     const target = await resolvePostAuthTarget(user.id, accountRole);
-    if (target.kind === "pro") navigate({ to: "/pro" });
+    if (target.kind === "admin") navigate({ to: "/admin" });
+    else if (target.kind === "pro") navigate({ to: "/pro" });
     else if (target.kind === "pro-onboarding") navigate({ to: "/pro/inscription" });
     else if (target.kind === "request") {
       if (target.published) toast.success("🎉 Votre demande a été publiée !");

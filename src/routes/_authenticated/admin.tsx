@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ClipboardList, Flag, ShieldCheck, Users } from "lucide-react";
+import { ClipboardList, Flag, ShieldCheck, Users, Menu, X, ChevronRight, SlidersHorizontal, FileText, FlaskConical, CreditCard } from "lucide-react";
 import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
 import { WorkspaceHero } from "@/components/workspace";
 
@@ -13,10 +13,17 @@ import { AdminBlog } from "@/components/admin-blog";
 import { LaunchOfferAdminCounter } from "@/components/launch-offer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ensureSession, isAdminUser } from "@/lib/auth-store";
+import { Button } from "@/components/ui/button";
 
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  beforeLoad: async () => {
+    const session = await ensureSession();
+    if (!session?.user || !(await isAdminUser(session.user.id))) throw redirect({ to: "/" });
+    return { adminUserId: session.user.id };
+  },
   head: () => ({
     meta: [
       { title: "Administration — ProFinder" },
@@ -30,19 +37,23 @@ export const Route = createFileRoute("/_authenticated/admin")({
         property: "og:description",
         content: "Console d'administration ProFinder : modération, statistiques et paramètres.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Admin,
 });
 
 function Admin() {
-  const { isAdmin, loading, user } = useAuth();
+  const { adminUserId } = Route.useRouteContext();
   const qc = useQueryClient();
+  const [panel, setPanel] = useState<AdminPanel>("overview");
+  const [menuOpen, setMenuOpen] = useState(false);
 
 
   const pros = useQuery({
     queryKey: ["admin-pros"],
-    enabled: isAdmin,
+    enabled: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("professionals")
@@ -55,7 +66,7 @@ function Admin() {
 
   const requests = useQuery({
     queryKey: ["admin-requests"],
-    enabled: isAdmin,
+    enabled: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("requests")
@@ -69,7 +80,7 @@ function Admin() {
 
   const flagged = useQuery({
     queryKey: ["admin-flagged"],
-    enabled: isAdmin,
+    enabled: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("messages")
@@ -83,7 +94,7 @@ function Admin() {
 
   const settings = useQuery({
     queryKey: ["admin-settings"],
-    enabled: isAdmin,
+    enabled: true,
     queryFn: async () => {
       const { data } = await supabase.from("platform_settings").select("*");
       return data ?? [];
@@ -92,7 +103,7 @@ function Admin() {
 
   const catalog = useQuery({
     queryKey: ["admin-catalog"],
-    enabled: isAdmin,
+    enabled: true,
     queryFn: async () => {
       const { data } = await supabase.from("subscription_plans").select("*").order("sort");
       return { plans: data ?? [] };
@@ -187,22 +198,6 @@ function Admin() {
     qc.invalidateQueries({ queryKey: ["admin-settings"] });
   };
 
-
-  if (loading) return <div className="p-10 text-center text-muted-foreground">Chargement…</div>;
-
-  if (!isAdmin)
-    return (
-      <div className="min-h-screen bg-background font-sans">
-        <SiteHeader variant="admin" />
-        <main className="mx-auto max-w-2xl px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold">Accès réservé</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Cette console est réservée aux administrateurs de la plateforme.
-          </p>
-        </main>
-        <SiteFooter variant="admin" />
-      </div>
-    );
 
   const pending = (pros.data ?? []).filter((p) => p.status === "draft");
 
