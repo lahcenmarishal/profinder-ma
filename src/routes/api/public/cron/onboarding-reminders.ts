@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/public/cron/onboarding-reminders")({
         if (!token) return new Response("Unauthorized", { status: 401 });
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data } = await supabaseAdmin
-          .from("cron_tokens" as never)
+          .from("cron_tokens")
           .select("token")
           .eq("name", "onboarding_reminders")
           .maybeSingle();
