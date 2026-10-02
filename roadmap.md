@@ -49,3 +49,7 @@
       restent en `noindex` tant qu'aucune fiche complète n'existe
 - [ ] Avertissements sécurité préexistants : fonctions SECURITY DEFINER exécutables publiquement
 
+
+## En cours
+- [ ] Isoler l’administration des pages élèves et orienter sa connexion vers la console
+- [ ] Limiter le menu admin à Accueil / Console et répartir la console en vues accessibles par menu hamburger
