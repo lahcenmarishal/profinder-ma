@@ -4,6 +4,7 @@ import { tryPublishPendingDraft } from "@/lib/request-draft";
 import { resumeClientFlow } from "@/lib/student-need";
 import { localPendingRole, rememberPendingRole, type AccountRole } from "@/lib/pending-role";
 import { resolveOAuthRole } from "@/lib/oauth-role";
+import { isAdminUser } from "@/lib/auth-store";
 
 const PENDING_OAUTH_KEY = "profinder.pending_oauth";
 
@@ -30,6 +31,7 @@ export function consumeOAuthPending(): AccountRole | null {
 }
 
 export type PostAuthTarget =
+  | { kind: "admin" }
   | { kind: "pro" }
   | { kind: "pro-onboarding" }
   | { kind: "request"; id: string; published: boolean }
@@ -166,6 +168,8 @@ export async function resolvePostAuthTarget(
   userId: string,
   role: AccountRole,
 ): Promise<PostAuthTarget> {
+  // Les comptes administrateurs ne participent pas au parcours élève ou professeur.
+  if (await isAdminUser(userId)) return { kind: "admin" };
   if (role === "pro") {
     const { data } = await supabase
       .from("professionals")

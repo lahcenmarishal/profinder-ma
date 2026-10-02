@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ensureSession } from "@/lib/auth-store";
+import { ensureSession, isAdminUser } from "@/lib/auth-store";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site";
@@ -219,7 +219,8 @@ function AuthPage() {
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (isPro) navigate({ to: "/pro" });
+        if (data.user && await isAdminUser(data.user.id)) navigate({ to: "/admin" });
+        else if (isPro) navigate({ to: "/pro" });
         else if (data.user) await goClientHome(data.user.id);
         else navigate({ to: "/demandes" });
       }
@@ -270,6 +271,10 @@ function AuthPage() {
       return;
     }
     consumeOAuthPending();
+    if (await isAdminUser(user.id)) {
+      navigate({ to: "/admin" });
+      return;
+    }
     const { role: accountRole, isNewAccount } = await ensureOAuthAccount(
       user,
       role,
@@ -281,7 +286,8 @@ function AuthPage() {
       return;
     }
     const target = await resolvePostAuthTarget(user.id, accountRole);
-    if (target.kind === "pro") navigate({ to: "/pro" });
+    if (target.kind === "admin") navigate({ to: "/admin" });
+    else if (target.kind === "pro") navigate({ to: "/pro" });
     else if (target.kind === "pro-onboarding") navigate({ to: "/pro/inscription" });
     else if (target.kind === "request") {
       if (target.published) toast.success("🎉 Votre demande a été publiée !");
