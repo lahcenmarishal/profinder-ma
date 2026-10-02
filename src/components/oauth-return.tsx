@@ -13,6 +13,7 @@ import {
 import { clearPendingRole } from "@/lib/pending-role";
 import { clearClientFlowData } from "@/lib/student-need";
 import { requestWelcomeEmail } from "@/lib/welcome-email";
+import { isAdminUser } from "@/lib/auth-store";
 
 /**
  * Redirige l'utilisateur vers le bon espace après un retour de connexion Google
@@ -52,6 +53,10 @@ export function OAuthReturnHandler() {
         done = true;
         consumeOAuthPending();
         clearPendingRole();
+        if (await isAdminUser(user.id)) {
+          if (!cancelled) navigate({ to: "/admin" });
+          return;
+        }
 
         const { role, isNewAccount, roleWasChosen } = await ensureOAuthAccount(
           user,

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -20,8 +20,13 @@ import { AvailabilityPicker } from "@/components/availability-picker";
 import { fetchReferenceData, flexibleSlots, MODE_LABELS, type Slot } from "@/lib/marketplace";
 import { publishRequest } from "@/lib/request-draft";
 import { loadStudentNeed, type StudentNeed } from "@/lib/student-need";
+import { ensureSession, isAdminUser } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/_authenticated/compte")({
+  beforeLoad: async () => {
+    const session = await ensureSession();
+    if (session?.user && await isAdminUser(session.user.id)) throw redirect({ to: "/admin" });
+  },
   head: () => ({
     meta: [
       { title: "Mon espace élève — ProFinder" },

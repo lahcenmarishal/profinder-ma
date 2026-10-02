@@ -72,9 +72,6 @@ function navItemsFor(variant: SiteVariant, isLogged: boolean): NavItem[] {
     return [
       { to: "/", label: "Accueil", Icon: Home },
       { to: "/admin", label: "Console", Icon: Settings },
-      { to: "/professeurs", label: "Professeurs", Icon: GraduationCap },
-      { to: "/demandes", label: "Demandes", Icon: ClipboardList },
-      { to: "/messages", label: "Messages", Icon: MessageSquare },
     ];
   }
   if (variant === "pro") {
