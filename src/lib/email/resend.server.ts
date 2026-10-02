@@ -10,7 +10,9 @@ export const REPLY_TO = "contact@profinder.ma";
 
 /** URL publique du site, utilisée dans les liens des emails. */
 export function siteUrl(): string {
-  return (process.env["SITE_URL"] ?? "https://profinder.ma").replace(/\/$/, "");
+  // Les emails pointent toujours vers le site public, même si l'envoi
+  // est déclenché depuis la version Lovable (preview) du site.
+  return "https://profinder.ma";
 }
 
 export type SendResult = { sent: boolean; reason?: string };
