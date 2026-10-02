@@ -4,7 +4,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ClipboardList, Flag, ShieldCheck, Users, Menu, X, ChevronRight, SlidersHorizontal, FileText, FlaskConical, CreditCard } from "lucide-react";
 import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
-import { WorkspaceHero } from "@/components/workspace";
 
 import { AdminVerifications } from "@/components/admin-verifications";
 import { AdminDemoCreate } from "@/components/admin-demo-create";
@@ -12,7 +11,6 @@ import { AdminProEdit } from "@/components/admin-pro-edit";
 import { AdminBlog } from "@/components/admin-blog";
 import { LaunchOfferAdminCounter } from "@/components/launch-offer";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { ensureSession, isAdminUser } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 
@@ -43,6 +41,20 @@ export const Route = createFileRoute("/_authenticated/admin")({
   }),
   component: Admin,
 });
+
+type AdminPanel = "overview" | "pros" | "requests" | "verifications" | "demo" | "blog" | "pricing" | "alerts" | "settings";
+
+const panels: { id: AdminPanel; label: string; Icon: typeof Users }[] = [
+  { id: "overview", label: "Vue d'ensemble", Icon: ClipboardList },
+  { id: "pros", label: "Professeurs", Icon: Users },
+  { id: "requests", label: "Demandes", Icon: ClipboardList },
+  { id: "verifications", label: "Vérifications", Icon: ShieldCheck },
+  { id: "demo", label: "Données démo", Icon: FlaskConical },
+  { id: "blog", label: "Blog", Icon: FileText },
+  { id: "pricing", label: "Tarifs et offre", Icon: CreditCard },
+  { id: "alerts", label: "Signalements", Icon: Flag },
+  { id: "settings", label: "Paramètres", Icon: SlidersHorizontal },
+];
 
 function Admin() {
   const { adminUserId } = Route.useRouteContext();
@@ -205,21 +217,45 @@ function Admin() {
     <div className="min-h-screen bg-background font-sans text-foreground">
       <SiteHeader variant="admin" />
       <main className="mx-auto max-w-5xl px-4 py-8 pb-24">
-        <WorkspaceHero
-          eyebrow="Console d'administration"
-          title="Administration"
-          subtitle="Modération des profils, suivi des demandes et réglages de la plateforme."
-          stats={[
-            { label: "Professeurs", value: pros.data?.length ?? 0, Icon: Users },
-            { label: "En attente", value: pending.length, hint: "à modérer", Icon: ShieldCheck },
-            { label: "Demandes", value: requests.data?.length ?? 0, Icon: ClipboardList },
-            { label: "Messages signalés", value: flagged.data?.length ?? 0, Icon: Flag },
-          ]}
-        />
+        <div className="flex items-center gap-4 border-b border-border pb-5">
+          <Button variant="outline" size="icon" aria-label="Ouvrir les rubriques de la console" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
+            <Menu />
+          </Button>
+          <div>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Console d'administration</p>
+            <h1 className="text-2xl font-bold">{panels.find((item) => item.id === panel)?.label}</h1>
+          </div>
+        </div>
+        {menuOpen && <div className="fixed inset-0 z-[70] bg-foreground/40" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
+        <aside className={`fixed inset-y-0 left-0 z-[80] w-[min(20rem,85vw)] overflow-y-auto border-r border-border bg-background p-5 shadow-xl transition-transform ${menuOpen ? "translate-x-0" : "-translate-x-full"}`} aria-label="Rubriques de la console" aria-hidden={!menuOpen}>
+          <div className="mb-7 flex items-center justify-between">
+            <strong className="text-lg">Console</strong>
+            <Button variant="ghost" size="icon" aria-label="Fermer les rubriques" onClick={() => setMenuOpen(false)}><X /></Button>
+          </div>
+          <nav className="space-y-1">
+            {panels.map(({ id, label, Icon }) => (
+              <Button key={id} variant={panel === id ? "secondary" : "ghost"} className="w-full justify-start" tabIndex={menuOpen ? 0 : -1} onClick={() => { setPanel(id); setMenuOpen(false); window.scrollTo(0, 0); }}>
+                <Icon />{label}
+              </Button>
+            ))}
+          </nav>
+        </aside>
 
+        {panel === "overview" && <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          {[
+            { id: "pros" as const, label: "Professeurs", value: pros.data?.length ?? 0, Icon: Users },
+            { id: "verifications" as const, label: "En attente", value: pending.length, Icon: ShieldCheck },
+            { id: "requests" as const, label: "Demandes", value: requests.data?.length ?? 0, Icon: ClipboardList },
+            { id: "alerts" as const, label: "Messages signalés", value: flagged.data?.length ?? 0, Icon: Flag },
+          ].map(({ id, label, value, Icon }) => (
+            <Button key={id} variant="outline" className="h-auto justify-between rounded-md p-5 text-left" onClick={() => setPanel(id)}>
+              <span className="flex items-center gap-3"><Icon />{label}</span><span className="flex items-center gap-2 text-xl font-bold tabular-nums">{value}<ChevronRight className="size-4 text-muted-foreground" /></span>
+            </Button>
+          ))}
+        </div>}
 
-        <AdminDemoCreate />
-
+        {panel === "demo" && <AdminDemoCreate />}
+        {panel === "pros" && <>
         <section className="mt-10">
           <h2 className="text-xl font-bold">Modération des profils</h2>
           <div className="mt-4 space-y-3">
@@ -277,7 +313,9 @@ function Admin() {
             )}
           </div>
         </section>
+        </>}
 
+        {panel === "requests" && <>
         <section className="mt-10">
           <h2 className="text-xl font-bold">Demandes des élèves</h2>
           <div className="mt-4 space-y-3">
@@ -317,17 +355,18 @@ function Admin() {
             )}
           </div>
         </section>
+        </>}
 
-        <LaunchOfferAdminCounter />
+        {panel === "pricing" && <LaunchOfferAdminCounter />}
 
-        <AdminBlog />
+        {panel === "blog" && <AdminBlog />}
 
-        <AdminVerifications adminId={user?.id} />
-
-
+        {panel === "verifications" && <AdminVerifications adminId={adminUserId} />}
 
 
-        <section className="mt-10">
+
+
+        {panel === "pricing" && <section className="mt-10">
 
           <h2 className="text-xl font-bold">Tarifs</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -399,9 +438,9 @@ function Admin() {
               </div>
             ))}
           </div>
-        </section>
+        </section>}
 
-        <section className="mt-10">
+        {panel === "alerts" && <section className="mt-10">
           <h2 className="text-xl font-bold">Messages signalés</h2>
           <ul className="mt-4 space-y-2 text-sm">
             {(flagged.data ?? []).map((m) => (
@@ -416,9 +455,9 @@ function Admin() {
               <li className="text-muted-foreground">Aucun message signalé.</li>
             )}
           </ul>
-        </section>
+        </section>}
 
-        <section className="mt-10">
+        {panel === "settings" && <section className="mt-10">
           <h2 className="text-xl font-bold">Pondération du matching</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {(settings.data ?? []).map((s) => (
@@ -433,7 +472,7 @@ function Admin() {
               </label>
             ))}
           </div>
-        </section>
+        </section>}
       </main>
       <MobileTabBar variant="admin" />
       <SiteFooter variant="admin" />
