@@ -83,7 +83,7 @@ function Admin() {
       const { data } = await supabase
         .from("requests")
         .select(
-          "id, status, description, area, budget_min, budget_max, is_demo, created_at, cities(name), services(name)",
+          "id, status, description, area, budget_min, budget_max, created_at, cities(name), services(name)",
         )
         .order("created_at", { ascending: false });
       return data ?? [];
@@ -255,7 +255,7 @@ function Admin() {
         </div>}
 
         {panel === "demo" && <AdminDemoCreate />}
-        {panel === "pros" && <>
+        {panel === "pros" &&
         <section className="mt-10">
           <h2 className="text-xl font-bold">Modération des profils</h2>
           <div className="mt-4 space-y-3">
@@ -278,24 +278,24 @@ function Admin() {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={() => setStatus(p.id, "active")}
-                    className="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
+                    size="sm"
                   >
                     Vérifier
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => setStatus(p.id, "suspended")}
-                    className="rounded-lg bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground"
+                    size="sm" variant="secondary"
                   >
                     Suspendre
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => deletePro(p.id, p.display_name)}
-                    className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
+                    size="sm" variant="destructive"
                   >
                     Supprimer
-                  </button>
+                  </Button>
                 </div>
                 <AdminProEdit
                   id={p.id}
@@ -313,9 +313,9 @@ function Admin() {
             )}
           </div>
         </section>
-        </>}
+        }
 
-        {panel === "requests" && <>
+        {panel === "requests" &&
         <section className="mt-10">
           <h2 className="text-xl font-bold">Demandes des élèves</h2>
           <div className="mt-4 space-y-3">
@@ -327,11 +327,6 @@ function Admin() {
                 <div className="max-w-xl">
                   <p className="flex items-center gap-2 font-semibold">
                     {r.services?.name ?? "Matière non précisée"}
-                    {r.is_demo && (
-                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-foreground">
-                        Démo
-                      </span>
-                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {r.cities?.name ?? "Ville non précisée"}
@@ -342,12 +337,12 @@ function Admin() {
                   </p>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.description}</p>
                 </div>
-                <button
+                <Button
                   onClick={() => deleteRequest(r.id)}
-                  className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
+                  size="sm" variant="destructive"
                 >
                   Supprimer
-                </button>
+                </Button>
               </div>
             ))}
             {(requests.data ?? []).length === 0 && (
@@ -355,7 +350,7 @@ function Admin() {
             )}
           </div>
         </section>
-        </>}
+        }
 
         {panel === "pricing" && <LaunchOfferAdminCounter />}
 
@@ -460,7 +455,7 @@ function Admin() {
         {panel === "settings" && <section className="mt-10">
           <h2 className="text-xl font-bold">Pondération du matching</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {(settings.data ?? []).map((s) => (
+            {(settings.data ?? []).filter((s) => s.key !== "rate_range").map((s) => (
               <label key={s.key} className="text-sm font-medium">
                 {s.key}
                 <input

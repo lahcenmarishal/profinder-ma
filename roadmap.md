@@ -51,5 +51,5 @@
 
 
 ## En cours
-- [ ] Isoler l’administration des pages élèves et orienter sa connexion vers la console
-- [ ] Limiter le menu admin à Accueil / Console et répartir la console en vues accessibles par menu hamburger
+- [x] Isoler l’administration des pages élèves et orienter sa connexion vers la console
+- [x] Limiter le menu admin à Accueil / Console et répartir la console en vues accessibles par menu hamburger
