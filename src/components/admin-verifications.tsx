@@ -246,34 +246,46 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
                 )}
               </div>
 
-              <textarea
-                value={notes[p.id] ?? ""}
-                onChange={(e) => setNotes((n) => ({ ...n, [p.id]: e.target.value }))}
-                placeholder="Message au professeur (obligatoire pour un refus ou une demande d'informations)"
-                maxLength={1000}
-                className="mt-3 h-20 w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm"
-              />
-
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   onClick={() => decide(p.id, status, "verified", "approve")}
-                  className="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
                 >
-                  Approuver
+                  ✓ Approuver
                 </button>
                 <button
-                  onClick={() => decide(p.id, status, "needs_information", "request_info")}
-                  className="rounded-lg bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground"
+                  onClick={() => setNoteFor(noteFor === p.id ? null : p.id)}
+                  className="rounded-lg bg-muted px-3 py-2 text-xs font-semibold hover:bg-muted/70"
                 >
-                  Demander des informations
-                </button>
-                <button
-                  onClick={() => decide(p.id, status, "rejected", "reject")}
-                  className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
-                >
-                  Refuser
+                  {noteFor === p.id ? "Annuler" : "Refuser / demander des infos"}
                 </button>
               </div>
+
+              {noteFor === p.id && (
+                <div className="mt-3 rounded-xl border border-border bg-muted/40 p-3">
+                  <textarea
+                    value={notes[p.id] ?? ""}
+                    onChange={(e) => setNotes((n) => ({ ...n, [p.id]: e.target.value }))}
+                    placeholder="Message au professeur (obligatoire pour un refus ou une demande d'informations)"
+                    maxLength={1000}
+                    className="h-20 w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm"
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => decide(p.id, status, "needs_information", "request_info")}
+                      className="rounded-lg bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground"
+                    >
+                      Demander des informations
+                    </button>
+                    <button
+                      onClick={() => decide(p.id, status, "rejected", "reject")}
+                      className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
+                    >
+                      Refuser
+                    </button>
+                  </div>
+                </div>
+              )}
             </article>
           );
         })}
