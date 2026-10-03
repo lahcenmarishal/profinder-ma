@@ -24,6 +24,9 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
   const qc = useQueryClient();
   const [filter, setFilter] = useState<Filter>("pending");
   const [notes, setNotes] = useState<Record<string, string>>({});
+  // Dossier pour lequel la zone de motif (refus / demande d'infos) est ouverte.
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const dossiers = useQuery({
     queryKey: ["admin-verifications", filter],
