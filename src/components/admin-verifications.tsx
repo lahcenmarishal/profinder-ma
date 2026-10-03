@@ -110,6 +110,57 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
     });
     toast.success("Décision enregistrée, le professeur a été notifié.");
     setNotes((n) => ({ ...n, [proId]: "" }));
+    setNoteFor(null);
+    qc.invalidateQueries({ queryKey: ["admin-verifications"] });
+    qc.invalidateQueries({ queryKey: ["admin-pros"] });
+  };
+
+  /** Approuve d'un coup tous les dossiers « À vérifier » affichés. */
+  const approveAll = async () => {
+    const pending = (dossiers.data ?? []).filter(
+      (p) => p.verification_status === "pending",
+    );
+    if (pending.length === 0) return;
+    setBulkBusy(true);
+    let ok = 0;
+    for (const p of pending) {
+      const { error } = await supabase
+        .from("professionals")
+        .update({
+          verification_status: "verified" as const,
+          is_verified: true,
+          verified_at: new Date().toISOString(),
+          verified_by: adminId ?? null,
+          status: "active" as const,
+          admin_message: null,
+          rejection_reason: null,
+        })
+        .eq("id", p.id);
+      if (error) {
+        toast.error(`${p.display_name} : ${error.message}`);
+        continue;
+      }
+      await supabase
+        .from("verification_requests")
+        .update({
+          status: "verified" as const,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: adminId ?? null,
+        })
+        .eq("professional_id", p.id)
+        .eq("status", "pending");
+      await supabase.from("verification_logs").insert({
+        professional_id: p.id,
+        admin_id: adminId ?? null,
+        action: "approve",
+        old_status: p.verification_status,
+        new_status: "verified" as const,
+        comment: null,
+      });
+      ok += 1;
+    }
+    setBulkBusy(false);
+    toast.success(`${ok} professeur(s) approuvé(s) et notifié(s).`);
     qc.invalidateQueries({ queryKey: ["admin-verifications"] });
     qc.invalidateQueries({ queryKey: ["admin-pros"] });
   };
