@@ -24,6 +24,9 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
   const qc = useQueryClient();
   const [filter, setFilter] = useState<Filter>("pending");
   const [notes, setNotes] = useState<Record<string, string>>({});
+  // Dossier pour lequel la zone de motif (refus / demande d'infos) est ouverte.
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const dossiers = useQuery({
     queryKey: ["admin-verifications", filter],
@@ -107,6 +110,57 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
     });
     toast.success("Décision enregistrée, le professeur a été notifié.");
     setNotes((n) => ({ ...n, [proId]: "" }));
+    setNoteFor(null);
+    qc.invalidateQueries({ queryKey: ["admin-verifications"] });
+    qc.invalidateQueries({ queryKey: ["admin-pros"] });
+  };
+
+  /** Approuve d'un coup tous les dossiers « À vérifier » affichés. */
+  const approveAll = async () => {
+    const pending = (dossiers.data ?? []).filter(
+      (p) => p.verification_status === "pending",
+    );
+    if (pending.length === 0) return;
+    setBulkBusy(true);
+    let ok = 0;
+    for (const p of pending) {
+      const { error } = await supabase
+        .from("professionals")
+        .update({
+          verification_status: "verified" as const,
+          is_verified: true,
+          verified_at: new Date().toISOString(),
+          verified_by: adminId ?? null,
+          status: "active" as const,
+          admin_message: null,
+          rejection_reason: null,
+        })
+        .eq("id", p.id);
+      if (error) {
+        toast.error(`${p.display_name} : ${error.message}`);
+        continue;
+      }
+      await supabase
+        .from("verification_requests")
+        .update({
+          status: "verified" as const,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: adminId ?? null,
+        })
+        .eq("professional_id", p.id)
+        .eq("status", "pending");
+      await supabase.from("verification_logs").insert({
+        professional_id: p.id,
+        admin_id: adminId ?? null,
+        action: "approve",
+        old_status: p.verification_status,
+        new_status: "verified" as const,
+        comment: null,
+      });
+      ok += 1;
+    }
+    setBulkBusy(false);
+    toast.success(`${ok} professeur(s) approuvé(s) et notifié(s).`);
     qc.invalidateQueries({ queryKey: ["admin-verifications"] });
     qc.invalidateQueries({ queryKey: ["admin-pros"] });
   };
@@ -128,6 +182,16 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
             {f.label}
           </button>
         ))}
+        {filter === "pending" &&
+          (dossiers.data ?? []).some((p) => p.verification_status === "pending") && (
+            <button
+              onClick={approveAll}
+              disabled={bulkBusy}
+              className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground disabled:opacity-50"
+            >
+              {bulkBusy ? "Approbation en cours…" : "Tout approuver"}
+            </button>
+          )}
       </div>
 
       <div className="mt-4 space-y-4">
@@ -182,34 +246,46 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
                 )}
               </div>
 
-              <textarea
-                value={notes[p.id] ?? ""}
-                onChange={(e) => setNotes((n) => ({ ...n, [p.id]: e.target.value }))}
-                placeholder="Message au professeur (obligatoire pour un refus ou une demande d'informations)"
-                maxLength={1000}
-                className="mt-3 h-20 w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm"
-              />
-
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   onClick={() => decide(p.id, status, "verified", "approve")}
-                  className="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
                 >
-                  Approuver
+                  ✓ Approuver
                 </button>
                 <button
-                  onClick={() => decide(p.id, status, "needs_information", "request_info")}
-                  className="rounded-lg bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground"
+                  onClick={() => setNoteFor(noteFor === p.id ? null : p.id)}
+                  className="rounded-lg bg-muted px-3 py-2 text-xs font-semibold hover:bg-muted/70"
                 >
-                  Demander des informations
-                </button>
-                <button
-                  onClick={() => decide(p.id, status, "rejected", "reject")}
-                  className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
-                >
-                  Refuser
+                  {noteFor === p.id ? "Annuler" : "Refuser / demander des infos"}
                 </button>
               </div>
+
+              {noteFor === p.id && (
+                <div className="mt-3 rounded-xl border border-border bg-muted/40 p-3">
+                  <textarea
+                    value={notes[p.id] ?? ""}
+                    onChange={(e) => setNotes((n) => ({ ...n, [p.id]: e.target.value }))}
+                    placeholder="Message au professeur (obligatoire pour un refus ou une demande d'informations)"
+                    maxLength={1000}
+                    className="h-20 w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm"
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => decide(p.id, status, "needs_information", "request_info")}
+                      className="rounded-lg bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground"
+                    >
+                      Demander des informations
+                    </button>
+                    <button
+                      onClick={() => decide(p.id, status, "rejected", "reject")}
+                      className="rounded-lg bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground"
+                    >
+                      Refuser
+                    </button>
+                  </div>
+                </div>
+              )}
             </article>
           );
         })}
