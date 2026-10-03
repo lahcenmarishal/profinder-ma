@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import { ClipboardList, Flag, ShieldCheck, Users, Menu, X, ChevronRight, SlidersHorizontal, FileText, FlaskConical, CreditCard } from "lucide-react";
 import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
 
+import { VerifiedBadge } from "@/components/verified-badge";
 import { AdminVerifications } from "@/components/admin-verifications";
 import { AdminDemoCreate } from "@/components/admin-demo-create";
-import { AdminProEdit } from "@/components/admin-pro-edit";
 import { AdminBlog } from "@/components/admin-blog";
 import { LaunchOfferAdminCounter } from "@/components/launch-offer";
 import { supabase } from "@/integrations/supabase/client";
@@ -267,14 +267,12 @@ function Admin() {
                 <div>
                   <p className="flex items-center gap-2 font-semibold">
                     {p.display_name}
+                    <VerifiedBadge verified={p.is_verified} compact />
                     {p.is_demo && (
                       <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-foreground">
                         Démo
                       </span>
                     )}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {Number(p.hourly_rate)} DH/h · plan {p.plan_code} · statut {p.status}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -297,15 +295,6 @@ function Admin() {
                     Supprimer
                   </Button>
                 </div>
-                <AdminProEdit
-                  id={p.id}
-                  photoUrl={p.photo_url}
-                  gender={p.gender}
-                  ratingAvg={p.rating_avg}
-                  ratingCount={p.rating_count}
-                  serviceIds={(p.professional_services ?? []).map((item) => item.service_id)}
-                  availability={p.professional_availability ?? []}
-                />
               </div>
             ))}
             {(pros.data ?? []).length === 0 && (
