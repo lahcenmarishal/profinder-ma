@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ClipboardList, Flag, ShieldCheck, Users, Menu, X, ChevronRight, SlidersHorizontal, FileText, FlaskConical, CreditCard } from "lucide-react";
 import { MobileTabBar, SiteFooter, SiteHeader } from "@/components/site";
 
+import { VerifiedBadge } from "@/components/verified-badge";
 import { AdminVerifications } from "@/components/admin-verifications";
 import { AdminDemoCreate } from "@/components/admin-demo-create";
 import { AdminBlog } from "@/components/admin-blog";
@@ -294,15 +295,6 @@ function Admin() {
                     Supprimer
                   </Button>
                 </div>
-                <AdminProEdit
-                  id={p.id}
-                  photoUrl={p.photo_url}
-                  gender={p.gender}
-                  ratingAvg={p.rating_avg}
-                  ratingCount={p.rating_count}
-                  serviceIds={(p.professional_services ?? []).map((item) => item.service_id)}
-                  availability={p.professional_availability ?? []}
-                />
               </div>
             ))}
             {(pros.data ?? []).length === 0 && (
