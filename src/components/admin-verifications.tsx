@@ -182,6 +182,16 @@ export function AdminVerifications({ adminId }: { adminId: string | undefined })
             {f.label}
           </button>
         ))}
+        {filter === "pending" &&
+          (dossiers.data ?? []).some((p) => p.verification_status === "pending") && (
+            <button
+              onClick={approveAll}
+              disabled={bulkBusy}
+              className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground disabled:opacity-50"
+            >
+              {bulkBusy ? "Approbation en cours…" : "Tout approuver"}
+            </button>
+          )}
       </div>
 
       <div className="mt-4 space-y-4">
