@@ -165,6 +165,42 @@ function Admin() {
     qc.invalidateQueries({ queryKey: ["admin-pros"] });
   };
 
+  // « Vérifier » : approuve + vérifie + passe PRO en un seul clic.
+  const verifyPro = async (id: string) => {
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from("professionals")
+      .update({
+        status: "active",
+        verification_status: "verified",
+        is_verified: true,
+        verified_at: now,
+        verified_by: adminUserId,
+        plan_code: "pro",
+        onboarding_completed: true,
+        admin_message: null,
+        rejection_reason: null,
+      })
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await supabase
+      .from("verification_requests")
+      .update({ status: "verified", reviewed_at: now, reviewed_by: adminUserId })
+      .eq("professional_id", id)
+      .in("status", ["pending", "needs_information"]);
+    await supabase.from("verification_logs").insert({
+      professional_id: id,
+      admin_id: adminUserId,
+      action: "approve",
+      new_status: "verified",
+    });
+    toast.success("Professeur vérifié et passé PRO.");
+    qc.invalidateQueries({ queryKey: ["admin-pros"] });
+  };
+
   // Suppression définitive : fonctionne pour une fiche de démonstration
   // comme pour un vrai compte, avec toutes ses données liées.
   const deletePro = async (id: string, name: string) => {
@@ -284,7 +320,7 @@ function Admin() {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => setStatus(p.id, "active")}
+                    onClick={() => verifyPro(p.id)}
                     size="sm"
                   >
                     Vérifier
