@@ -299,9 +299,9 @@ function Admin() {
         {panel === "demo" && <AdminDemoCreate />}
         {panel === "pros" &&
         <section className="mt-10">
-          <h2 className="text-xl font-bold">Modération des profils</h2>
+          <h2 className="text-xl font-bold">Professeurs inscrits</h2>
           <div className="mt-4 space-y-3">
-            {(pros.data ?? []).map((p) => (
+            {registered.map((p) => (
               <div
                 key={p.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4"
