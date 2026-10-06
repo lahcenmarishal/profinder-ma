@@ -42,11 +42,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: Admin,
 });
 
-type AdminPanel = "overview" | "pros" | "requests" | "verifications" | "demo" | "blog" | "pricing" | "alerts" | "settings";
+type AdminPanel = "overview" | "pros" | "pending" | "requests" | "verifications" | "demo" | "blog" | "pricing" | "alerts" | "settings";
 
 const panels: { id: AdminPanel; label: string; Icon: typeof Users }[] = [
   { id: "overview", label: "Vue d'ensemble", Icon: ClipboardList },
   { id: "pros", label: "Professeurs", Icon: Users },
+  { id: "pending", label: "En attente", Icon: ShieldCheck },
   { id: "requests", label: "Demandes", Icon: ClipboardList },
   { id: "verifications", label: "Vérifications", Icon: ShieldCheck },
   { id: "demo", label: "Données démo", Icon: FlaskConical },
@@ -247,7 +248,12 @@ function Admin() {
   };
 
 
-  const pending = (pros.data ?? []).filter((p) => p.status === "draft");
+  const pending = (pros.data ?? []).filter(
+    (p) => p.status === "draft" || p.verification_status === "pending",
+  );
+  const registered = (pros.data ?? []).filter(
+    (p) => p.status !== "draft" && p.verification_status !== "pending",
+  );
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
@@ -280,7 +286,7 @@ function Admin() {
         {panel === "overview" && <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {[
             { id: "pros" as const, label: "Professeurs", value: pros.data?.length ?? 0, Icon: Users },
-            { id: "verifications" as const, label: "En attente", value: pending.length, Icon: ShieldCheck },
+            { id: "pending" as const, label: "En attente", value: pending.length, Icon: ShieldCheck },
             { id: "requests" as const, label: "Demandes", value: requests.data?.length ?? 0, Icon: ClipboardList },
             { id: "alerts" as const, label: "Messages signalés", value: flagged.data?.length ?? 0, Icon: Flag },
           ].map(({ id, label, value, Icon }) => (
@@ -293,9 +299,9 @@ function Admin() {
         {panel === "demo" && <AdminDemoCreate />}
         {panel === "pros" &&
         <section className="mt-10">
-          <h2 className="text-xl font-bold">Modération des profils</h2>
+          <h2 className="text-xl font-bold">Professeurs inscrits</h2>
           <div className="mt-4 space-y-3">
-            {(pros.data ?? []).map((p) => (
+            {registered.map((p) => (
               <div
                 key={p.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4"
@@ -340,8 +346,58 @@ function Admin() {
                 </div>
               </div>
             ))}
-            {(pros.data ?? []).length === 0 && (
-              <p className="text-sm text-muted-foreground">Aucun professeur pour le moment.</p>
+            {registered.length === 0 && (
+              <p className="text-sm text-muted-foreground">Aucun professeur inscrit pour le moment.</p>
+            )}
+          </div>
+        </section>
+        }
+
+        {panel === "pending" &&
+        <section className="mt-10">
+          <h2 className="text-xl font-bold">Professeurs en attente</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Consultez la fiche, puis cliquez sur « Vérifier » si le profil mérite d'être affiché sur le site, même s'il n'est pas encore complet.
+          </p>
+          <div className="mt-4 space-y-3">
+            {pending.map((p) => (
+              <div
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4"
+              >
+                <div className="flex items-center gap-2">
+                  <p className="flex items-center gap-2 font-semibold">
+                    {p.display_name}
+                    <VerifiedBadge verified={p.is_verified} compact />
+                    {p.is_demo && (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-foreground">
+                        Démo
+                      </span>
+                    )}
+                  </p>
+                  <Link
+                    to="/professeurs/$id"
+                    params={{ id: p.id }}
+                    className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                  >
+                    Voir le profil
+                  </Link>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={() => verifyPro(p.id)} size="sm">
+                    Vérifier
+                  </Button>
+                  <Button
+                    onClick={() => deletePro(p.id, p.display_name)}
+                    size="sm" variant="destructive"
+                  >
+                    Supprimer
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {pending.length === 0 && (
+              <p className="text-sm text-muted-foreground">Aucun professeur en attente.</p>
             )}
           </div>
         </section>
