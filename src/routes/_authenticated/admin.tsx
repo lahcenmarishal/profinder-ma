@@ -248,7 +248,12 @@ function Admin() {
   };
 
 
-  const pending = (pros.data ?? []).filter((p) => p.status === "draft");
+  const pending = (pros.data ?? []).filter(
+    (p) => p.status === "draft" || p.verification_status === "pending",
+  );
+  const registered = (pros.data ?? []).filter(
+    (p) => p.status !== "draft" && p.verification_status !== "pending",
+  );
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
