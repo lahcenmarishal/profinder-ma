@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -264,7 +264,7 @@ function Admin() {
                 key={p.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4"
               >
-                <div>
+                <div className="flex items-center gap-2">
                   <p className="flex items-center gap-2 font-semibold">
                     {p.display_name}
                     <VerifiedBadge verified={p.is_verified} compact />
@@ -274,6 +274,13 @@ function Admin() {
                       </span>
                     )}
                   </p>
+                  <Link
+                    to="/professeurs/$id"
+                    params={{ id: p.id }}
+                    className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                  >
+                    Voir le profil
+                  </Link>
                 </div>
                 <div className="flex gap-2">
                   <Button
