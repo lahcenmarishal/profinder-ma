@@ -286,7 +286,7 @@ function Admin() {
         {panel === "overview" && <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {[
             { id: "pros" as const, label: "Professeurs", value: pros.data?.length ?? 0, Icon: Users },
-            { id: "verifications" as const, label: "En attente", value: pending.length, Icon: ShieldCheck },
+            { id: "pending" as const, label: "En attente", value: pending.length, Icon: ShieldCheck },
             { id: "requests" as const, label: "Demandes", value: requests.data?.length ?? 0, Icon: ClipboardList },
             { id: "alerts" as const, label: "Messages signalés", value: flagged.data?.length ?? 0, Icon: Flag },
           ].map(({ id, label, value, Icon }) => (
