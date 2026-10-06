@@ -1,0 +1,2 @@
+ALTER TABLE public.proposals DROP CONSTRAINT proposals_request_id_fkey, ADD CONSTRAINT proposals_request_id_fkey FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE CASCADE;
+ALTER TABLE public.connections DROP CONSTRAINT connections_request_id_fkey, ADD CONSTRAINT connections_request_id_fkey FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE CASCADE;
