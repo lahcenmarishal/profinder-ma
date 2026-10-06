@@ -42,11 +42,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: Admin,
 });
 
-type AdminPanel = "overview" | "pros" | "requests" | "verifications" | "demo" | "blog" | "pricing" | "alerts" | "settings";
+type AdminPanel = "overview" | "pros" | "pending" | "requests" | "verifications" | "demo" | "blog" | "pricing" | "alerts" | "settings";
 
 const panels: { id: AdminPanel; label: string; Icon: typeof Users }[] = [
   { id: "overview", label: "Vue d'ensemble", Icon: ClipboardList },
   { id: "pros", label: "Professeurs", Icon: Users },
+  { id: "pending", label: "En attente", Icon: ShieldCheck },
   { id: "requests", label: "Demandes", Icon: ClipboardList },
   { id: "verifications", label: "Vérifications", Icon: ShieldCheck },
   { id: "demo", label: "Données démo", Icon: FlaskConical },
