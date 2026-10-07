@@ -248,11 +248,14 @@ function Admin() {
   };
 
 
-  const pending = (pros.data ?? []).filter(
-    (p) => p.status === "draft" || p.verification_status === "pending",
-  );
+  // La validation admin est la seule source de vérité pour classer un profil.
+  // Ainsi, un professeur vérifié quitte immédiatement « En attente », même si
+  // son inscription n'était pas terminée au moment de la validation.
   const registered = (pros.data ?? []).filter(
-    (p) => p.status !== "draft" && p.verification_status !== "pending",
+    (p) => p.verification_status === "verified" || p.is_verified,
+  );
+  const pending = (pros.data ?? []).filter(
+    (p) => p.verification_status !== "verified" && !p.is_verified,
   );
 
   return (
@@ -285,7 +288,7 @@ function Admin() {
 
         {panel === "overview" && <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {[
-            { id: "pros" as const, label: "Professeurs", value: pros.data?.length ?? 0, Icon: Users },
+            { id: "pros" as const, label: "Professeurs", value: registered.length, Icon: Users },
             { id: "pending" as const, label: "En attente", value: pending.length, Icon: ShieldCheck },
             { id: "requests" as const, label: "Demandes", value: requests.data?.length ?? 0, Icon: ClipboardList },
             { id: "alerts" as const, label: "Messages signalés", value: flagged.data?.length ?? 0, Icon: Flag },
