@@ -252,10 +252,10 @@ function Admin() {
   // Ainsi, un professeur vérifié quitte immédiatement « En attente », même si
   // son inscription n'était pas terminée au moment de la validation.
   const registered = (pros.data ?? []).filter(
-    (p) => p.verification_status === "verified" || p.is_verified,
+    (p) => p.onboarding_completed || p.verification_status === "verified" || p.is_verified,
   );
   const pending = (pros.data ?? []).filter(
-    (p) => p.verification_status !== "verified" && !p.is_verified,
+    (p) => !p.onboarding_completed && p.verification_status !== "verified" && !p.is_verified,
   );
 
   return (
