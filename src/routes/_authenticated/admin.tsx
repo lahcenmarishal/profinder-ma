@@ -248,9 +248,9 @@ function Admin() {
   };
 
 
-  // La validation admin est la seule source de vérité pour classer un profil.
-  // Ainsi, un professeur vérifié quitte immédiatement « En attente », même si
-  // son inscription n'était pas terminée au moment de la validation.
+  // « Professeurs » regroupe les inscriptions terminées et les profils validés.
+  // Un professeur vérifié quitte immédiatement « En attente », même si son
+  // inscription n'était pas terminée au moment de la validation.
   const registered = (pros.data ?? []).filter(
     (p) => p.onboarding_completed || p.verification_status === "verified" || p.is_verified,
   );
