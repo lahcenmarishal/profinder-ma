@@ -4,8 +4,6 @@ Plateforme de mise en relation entre élèves et professeurs particuliers au Mar
 
 Site en ligne : profinder.ma
 
-![Page d'accueil](./docs/accueil.png)
-
 ## Le problème
 
 Au Maroc, trouver un professeur particulier se fait surtout par le bouche-à-oreille ou sur les réseaux sociaux : peu de fiabilité, pas d'avis, pas de comparaison possible.
