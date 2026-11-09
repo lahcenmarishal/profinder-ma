@@ -18,13 +18,6 @@ ProFinder réunit élèves, parents et professeurs sur une seule plateforme :
 2. Les professeurs reçoivent les demandes qui leur correspondent et proposent un tarif et un créneau.
 3. L'élève compare les propositions, réserve et laisse un avis après le cours.
 
-## Aperçu
-
-![Liste des professeurs](./docs/professeurs.png)
-
-![Publication d'une demande](./docs/publier-demande.png)
-
-![Interface en arabe](./docs/version-arabe.png)
 
 ## Fonctionnalités
 
